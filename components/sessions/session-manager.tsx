@@ -54,6 +54,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [initialBlocks] = useState(session?.blocks)
   const [commit, setCommit] = useState(initialCommit)
   const [listenForCommits, setListenForCommits] = useState(!initialCommit.sha)
+  const [listenStartTime, setListenStartTime] = useState<string | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -105,10 +106,15 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
       fetchDiff()
     } else if (listenForCommits) {
       console.log("Starting commit polling for repo:", fullName)
+      // Set the listen start time when we begin polling
+      if (!listenStartTime) {
+        setListenStartTime(new Date().toISOString())
+      }
+
       const pollInterval = setInterval(async () => {
         try {
           console.log("Polling for new commits...")
-          const response = await fetch(`/api/github/commits/latest?repo=${encodeURIComponent(fullName)}`)
+          const response = await fetch(`/api/github/commits/latest?repo=${encodeURIComponent(fullName)}&since=${listenStartTime}`)
           const data = await response.json()
           console.log("Poll response:", data)
 
@@ -128,7 +134,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
 
       return () => clearInterval(pollInterval)
     }
-  }, [commit.sha, fullName, listenForCommits])
+  }, [commit.sha, fullName, listenForCommits, listenStartTime])
 
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -151,6 +157,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
       authored_at: "",
     })
     setFiles([])
+    setListenStartTime(new Date().toISOString())
   }
 
   return (
