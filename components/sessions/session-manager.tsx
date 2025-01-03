@@ -53,6 +53,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [aiEnabled] = useState(true)
   const [initialBlocks] = useState(session?.blocks)
   const [commit, setCommit] = useState(initialCommit)
+  const [listenForCommits, setListenForCommits] = useState(!initialCommit.sha)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -91,9 +92,10 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const { sessionIdeas, generateIdeas, clearIdeas } = useSessionIdeas()
   const { handleDiffSelection, handleLinkSelection, getExistingDiffFiles } = useFileSelector()
 
-  // Fetch diff when component mounts or commit changes
+  // Update commit polling effect
   useEffect(() => {
     async function fetchDiff() {
+      console.log("Fetching diff for commit:", commit.sha)
       const response = await fetch(`/api/github/commits/${commit.sha}/diff?repo=${encodeURIComponent(fullName)}`)
       const data = await response.json()
       setFiles(data)
@@ -101,33 +103,32 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
 
     if (commit.sha) {
       fetchDiff()
-    } else {
-      // Poll for new commits when starting from scratch
+    } else if (listenForCommits) {
+      console.log("Starting commit polling for repo:", fullName)
       const pollInterval = setInterval(async () => {
         try {
-          const response = await fetch(`/api/github/commits/${fullName}/latest`)
+          console.log("Polling for new commits...")
+          const response = await fetch(`/api/github/commits/latest?repo=${encodeURIComponent(fullName)}`)
           const data = await response.json()
-          if (data && data.sha) {
-            // Found a new commit, update the commit data
+          console.log("Poll response:", data)
+
+          if (data?.commit?.sha && data.commit.sha !== commit.sha) {
+            console.log("New commit found:", data.commit)
             setCommit({
-              sha: data.sha,
+              sha: data.commit.sha,
               message: data.commit.message,
               author_name: data.commit.author.name,
               authored_at: data.commit.author.date,
             })
-            // Fetch the diff for the new commit
-            const diffResponse = await fetch(`/api/github/commits/${data.sha}/diff?repo=${encodeURIComponent(fullName)}`)
-            const diffData = await diffResponse.json()
-            setFiles(diffData)
           }
         } catch (error) {
           console.error("Error polling for commits:", error)
         }
-      }, 20000) // Check every 20 seconds
+      }, 20000)
 
       return () => clearInterval(pollInterval)
     }
-  }, [commit.sha, fullName])
+  }, [commit.sha, fullName, listenForCommits])
 
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -142,6 +143,16 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     }
   }, [onUnmount])
 
+  const handleRemoveCommit = () => {
+    setCommit({
+      sha: "",
+      message: "",
+      author_name: "",
+      authored_at: "",
+    })
+    setFiles([])
+  }
+
   return (
     <SessionProvider>
       <div className="w-full flex gap-4 justify-between items-center px-8 pb-4 border-b">
@@ -155,7 +166,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
         <div className="2xl:p-8 space-y-4 2xl:h-screen 2xl:overflow-y-auto">
           {sessionIdeas.length > 0 && <SessionIdeas ideas={sessionIdeas} onClose={clearIdeas} />}
 
-          <CommitInfo commit={commit} files={files} fullName={fullName} />
+          <CommitInfo commit={commit} files={files} fullName={fullName} listenForCommits={listenForCommits} onListenChange={setListenForCommits} onRemoveCommit={handleRemoveCommit} />
 
           <SessionHeader title={title} onTitleChange={setTitle} onGenerateIdeas={() => generateIdeas(codeChanges)} view={view} onViewChange={(v) => setView(v as "edit" | "preview")} />
 
