@@ -21,18 +21,18 @@ interface Project {
   owner_id: string
   display_name: string
   name: string
-  homepage?: string
+  homepage: string | null
   full_name: string
-  description: string
+  description: string | null
   created_at: string
   profiles: {
-    name: string
+    name: string | null
   }
 }
 
 interface ProjectViewProps {
   project: Project
-  stats: ProjectStats
+  stats: ProjectStats | null
   sessions: Session[]
   session: SupabaseSession | null
   username: string

@@ -48,8 +48,6 @@ export default async function SessionPage({ params }: SessionPageProps) {
         },
       ]
 
-      console.log("Raw blocks data:", data.blocks)
-
       // Handle empty or missing blocks
       if (!data.blocks || data.blocks === "[]" || data.blocks === "null") {
         return {

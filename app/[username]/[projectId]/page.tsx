@@ -82,8 +82,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       if (!data) return []
 
       return data.map((session) => {
-        console.log("Raw blocks data for session", session.id, ":", session.blocks)
-
         // Handle empty or missing blocks
         if (!session.blocks || session.blocks === "[]" || session.blocks === "null") {
           return { ...session, blocks: [] }
