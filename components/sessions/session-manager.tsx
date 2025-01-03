@@ -11,7 +11,6 @@ import { SortableItem } from "./editor/sortable-item"
 import { AIConnect } from "./editor/ai-connect"
 import { generateSessionIdeas } from "@/lib/ai/sessions/actions"
 import { getStreamingText } from "@/app/api/ai/util"
-import { toast } from "sonner"
 import { readStreamableValue } from "ai/rsc"
 import { SessionPreview } from "./editor/session-preview"
 import { SessionProvider } from "./editor/session-context"
@@ -35,6 +34,7 @@ import { EndSessionButton } from "./editor/end-session-button"
 import { SessionHeader } from "./editor/session-header"
 import { useSessionAutosave } from "@/hooks/use-session-autosave"
 import { useFileReferences } from "@/hooks/use-file-references"
+import { useImageUpload } from "@/hooks/use-image-upload"
 
 interface SessionManagerProps {
   projectId: string
@@ -81,6 +81,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
   })
 
   const { codeChanges } = useFileReferences(blocks, files)
+  const { uploadImage } = useImageUpload(blocks, setBlocks)
 
   // Fetch diff when component mounts
   useEffect(() => {
@@ -126,40 +127,6 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
     }
 
     await getStreamingText(prompt, updateBlockContent)
-  }
-
-  const handleImageUpload = async (file: File, blockId: string) => {
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      })
-
-      if (!response.ok) throw new Error("Upload failed")
-
-      const { image_url } = await response.json()
-
-      setBlocks((current) => {
-        const updatedBlocks = current.map((block) => {
-          if (block.id === blockId && block.type === "markdown") {
-            const imageMarkdown = `\n\n![](${image_url})`
-            const updatedContent = block.content + imageMarkdown
-            return {
-              ...block,
-              content: updatedContent,
-            }
-          }
-          return block
-        })
-        return updatedBlocks
-      })
-    } catch (error) {
-      console.error("Image upload failed:", error)
-      toast.error("Failed to upload image. Please try again.")
-    }
   }
 
   return (
@@ -211,7 +178,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
                           <div className="flex gap-2">
                             <ImageUpload
                               onUpload={(file) => {
-                                handleImageUpload(file, block.id)
+                                uploadImage(file, block.id)
                               }}
                             />
                             <Button
