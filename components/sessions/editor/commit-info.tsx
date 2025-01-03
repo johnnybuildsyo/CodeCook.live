@@ -34,7 +34,7 @@ export function CommitInfo({ commit, files, fullName }: CommitInfoProps) {
               <div>{commit.message}</div>
             </>
           ) : (
-            <LoadingAnimation className="text-sm font-mono">Listening for commits...</LoadingAnimation>
+            <LoadingAnimation className="text-sm font-mono">Listening for commits</LoadingAnimation>
           )}
         </div>
         {commit.sha && fileArray.length > 0 ? (
