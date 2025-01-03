@@ -7,7 +7,7 @@ import { CookingPot, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { signInWithGitHub } from "@/components/auth/actions"
 import { CommitManager } from "./commit-manager"
-import { createClient } from "@/lib/supabase/client"
+import { createSession } from "@/app/actions/create-session"
 
 interface ProjectActionsProps {
   username: string
@@ -25,20 +25,13 @@ export function ProjectActions({ username, projectId, fullName, totalCommits, ha
   const handleStartFromScratch = async () => {
     setIsCreating(true)
     try {
-      const supabase = createClient()
-      const { data: session, error } = await supabase
-        .from("sessions")
-        .insert({
-          project_id: projectId,
-          title: "New Session",
-          blocks: [],
-        })
-        .select()
-        .single()
+      const { session, error } = await createSession(projectId, "", "")
 
-      if (error) throw error
+      if (error || !session) {
+        throw new Error(error || "Failed to create session")
+      }
 
-      router.push(`/${username}/${projectId}/session/${session.id}/edit`)
+      router.push(`/${username}/${projectId}/session/${session.id}/live`)
     } catch (error) {
       console.error("Failed to create session:", error)
       setIsCreating(false)

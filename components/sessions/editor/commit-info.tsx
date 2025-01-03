@@ -21,21 +21,32 @@ export function CommitInfo({ commit, files, fullName }: CommitInfoProps) {
     <div className="p-4 bg-muted/50 rounded-md">
       <div className="font-medium flex justify-between">
         <div className="flex items-center gap-2">
-          <a href={`https://github.com/${fullName}/commit/${commit.sha}`} target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-foreground font-mono text-sm underline">
-            {commit.sha.slice(0, 7)}
-          </a>
-          <div>{commit.message}</div>
+          {commit.sha ? (
+            <>
+              <a
+                href={`https://github.com/${fullName}/commit/${commit.sha}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground/70 hover:text-foreground font-mono text-sm underline"
+              >
+                {commit.sha.slice(0, 7)}
+              </a>
+              <div>{commit.message}</div>
+            </>
+          ) : (
+            <LoadingAnimation className="text-sm font-mono">Listening for commits...</LoadingAnimation>
+          )}
         </div>
-        {fileArray.length > 0 ? (
+        {commit.sha && fileArray.length > 0 ? (
           <div className="flex items-center gap-2 text-xs font-mono">
             <div>{fileArray.length} files</div>
             <button className="px-1 py-1 h-auto text-foreground/70 hover:text-foreground" onClick={() => setShowFiles(!showFiles)}>
               {showFiles ? <>[-] hide files</> : <>[+] show files</>}
             </button>
           </div>
-        ) : (
-          <LoadingAnimation className="text-sm font-mono" />
-        )}
+        ) : commit.sha ? (
+          <LoadingAnimation className="text-sm font-mono">Loading commits...</LoadingAnimation>
+        ) : null}
       </div>
       {showFiles && (
         <div className="text-sm">

@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 export type Json =
   | string
   | number

@@ -23,5 +23,13 @@
     "@typescript-eslint/no-unused-vars": 2,
     "max-lines": 1,
     "react-hooks/exhaustive-deps": 0
-  }
+  },
+  "overrides": [
+    {
+      "files": ["lib/supabase/database.types.ts"],
+      "rules": {
+        "max-lines": "off"
+      }
+    }
+  ]
 }

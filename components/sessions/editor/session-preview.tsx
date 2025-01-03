@@ -39,7 +39,7 @@ export function SessionPreview({ title, blocks, theme, fullName }: SessionPrevie
 
   return (
     <SessionProvider defaultView="preview">
-      <div className="border-l p-8">
+      <div className="border-l p-8 min-h-full">
         <SessionContent title={title} blocks={blocks} theme={theme} fullName={fullName} />
       </div>
     </SessionProvider>
