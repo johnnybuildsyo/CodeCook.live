@@ -3,6 +3,7 @@ import { ChevronsLeft } from "lucide-react"
 import { PauseCircleIcon } from "@heroicons/react/24/solid"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 interface EndSessionButtonProps {
   username: string
@@ -12,8 +13,10 @@ interface EndSessionButtonProps {
 
 export function EndSessionButton({ username, projectSlug, sessionId }: EndSessionButtonProps) {
   const router = useRouter()
+  const [isEnding, setIsEnding] = useState(false)
 
   const handleEndSession = async () => {
+    setIsEnding(true)
     const supabase = createClient()
     await supabase.from("sessions").update({ is_live: false }).eq("id", sessionId)
     router.push(`/${username}/${projectSlug}`)
@@ -21,16 +24,14 @@ export function EndSessionButton({ username, projectSlug, sessionId }: EndSessio
 
   return (
     <div className="flex items-center gap-2">
-      <Button asChild variant="outline" className="flex flex-col items-center" onClick={handleEndSession}>
-        <div className="flex items-center text-xs h-auto">
-          <span className="flex items-center gap-1">
-            <PauseCircleIcon className="h-3 w-3" />
-            End Session
-          </span>
-          <span className="text-[10px] font-mono font-light flex items-center gap-0.5">
-            <ChevronsLeft className="h-3 w-3 opacity-50" /> back to project
-          </span>
-        </div>
+      <Button variant="outline" className="flex flex-col items-center h-auto gap-0.5" onClick={handleEndSession} disabled={isEnding}>
+        <span className="flex items-center gap-1">
+          <PauseCircleIcon className={`h-3 w-3 ${isEnding ? "animate-pulse text-muted-foreground" : ""}`} />
+          {isEnding ? "Ending Session..." : "End Session"}
+        </span>
+        <span className="text-[10px] font-mono font-light flex items-center gap-0.5">
+          <ChevronsLeft className="h-3 w-3 opacity-50" /> back to project
+        </span>
       </Button>
     </div>
   )

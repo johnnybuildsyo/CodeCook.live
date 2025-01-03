@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "go": "pnpm lint && git add . && aicommits && git push origin main",
+    "ship": "pnpm go && pnpm db:push",
     "lint": "next lint",
     "db:push": "supabase db push",
     "db:diff": "supabase db diff -f migration",
