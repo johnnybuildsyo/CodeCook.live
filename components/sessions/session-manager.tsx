@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useTheme } from "next-themes"
@@ -24,7 +24,6 @@ import { SessionBlock, FileChange } from "@/lib/types/session"
 import { SessionIdeas } from "./editor/session-ideas"
 import { generateBlockPrompt } from "@/lib/ai/sessions/prompts"
 import type { Session } from "@/lib/types/session"
-import { upsertSession } from "@/app/api/sessions/actions"
 import { CommitLink } from "./commit-link"
 import { CommitLinkSelector } from "./editor/commit-link-selector"
 import { DEFAULT_SESSION_BLOCKS } from "./editor/utils"
@@ -34,6 +33,7 @@ import { SaveStatus } from "./editor/save-status"
 import { BlueskyButton } from "./editor/bluesky-button"
 import { EndSessionButton } from "./editor/end-session-button"
 import { SessionHeader } from "./editor/session-header"
+import { useSessionAutosave } from "@/hooks/use-session-autosave"
 
 interface SessionManagerProps {
   projectId: string
@@ -69,9 +69,15 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
   const [activeBlockId, setActiveBlockId] = useState<string>()
   const [diffDialogOpen, setDiffDialogOpen] = useState(false)
   const [linkSelectorOpen, setLinkSelectorOpen] = useState(false)
-  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">("saved")
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
   const [blueskyDialogOpen, setBlueskyDialogOpen] = useState(false)
+
+  const { status: saveStatus, lastSavedAt } = useSessionAutosave({
+    projectId,
+    commitSha: commit.sha,
+    sessionId: session?.id,
+    title,
+    blocks,
+  })
 
   // Get filenames from code blocks
   const referencedFiles = useMemo(() => {
@@ -179,83 +185,6 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
       toast.error("Failed to upload image. Please try again.")
     }
   }
-
-  // Debounced auto-save handler
-  const debouncedSave = useCallback(
-    async (title: string, blocks: SessionBlock[]) => {
-      setSaveStatus("saving")
-      try {
-        const cleanedBlocks = blocks.map((block): SessionBlock => {
-          switch (block.type) {
-            case "markdown":
-              return {
-                id: block.id,
-                type: "markdown",
-                content: block.content || "",
-                role: block.role,
-              }
-            case "commit-links":
-              return {
-                id: block.id,
-                type: "commit-links",
-                content: block.content || "",
-                commits: block.commits || [],
-              }
-            case "code":
-              return {
-                id: block.id,
-                type: "code",
-                content: block.content || "",
-                filename: block.filename,
-              }
-            case "diff":
-              return {
-                id: block.id,
-                type: "diff",
-                content: block.content || "",
-                file: block.file,
-              }
-            case "image":
-              return {
-                id: block.id,
-                type: "image",
-                content: block.content || "",
-                imageUrl: block.imageUrl,
-              }
-          }
-        })
-
-        const sessionData = {
-          title,
-          blocks: cleanedBlocks,
-          commit_shas: [commit.sha],
-        }
-
-        const { success } = await upsertSession(projectId, sessionData, session?.id)
-        if (success) {
-          setSaveStatus("saved")
-          setLastSavedAt(new Date())
-        } else {
-          setSaveStatus("error")
-        }
-      } catch (error) {
-        console.error("Auto-save failed:", error)
-        setSaveStatus("error")
-      }
-    },
-    [projectId, commit.sha, session?.id]
-  )
-
-  // Auto-save when content changes
-  useEffect(() => {
-    if (!title) return // Don't auto-save if there's no title
-
-    const timeoutId = setTimeout(() => {
-      debouncedSave(title, blocks)
-    }, 2000) // Wait 2 seconds after last change
-
-    return () => clearTimeout(timeoutId)
-  }, [title, blocks, debouncedSave])
 
   return (
     <SessionProvider>
