@@ -3,12 +3,12 @@
 ## Daily Build Log
 
 ### 2025-01-03 - Day 14
-Created hooks for session management
+🪝 Created hooks for session management
 
 ### 2025-01-02 - Day 13
-🔗 Added Bluesky sharing functionality
-📄 Enhanced posts with hashtag support
-📂 Updated supabase migrations
+🦋 Added Bluesky sharing functionality
+#️⃣ Enhanced posts with hashtag support
+🧵 Published first thread via Bluesky API
 📂 23  ➕ 1201  ➖ 388
 
 ### 2025-01-01 - Day 12
