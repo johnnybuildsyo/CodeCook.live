@@ -158,10 +158,10 @@ export function SessionManager({ projectId, commit, fullName, session, onUnmount
                             onChange={(e) => updateBlockContent(block.id, e.target.value)}
                             placeholder={
                               block.role === "intro"
-                                ? "Start with what problem you're solving or what feature you're adding. What motivated these changes?"
+                                ? "Start with introducting the problem we’re solving or what feature we’re adding. Why are we cooking this up?"
                                 : block.role === "summary"
-                                  ? "Wrap up with the key benefits and any next steps. What impact will these changes have?"
-                                  : "Explain the technical details. What approach did you take and why? What were the key decisions?"
+                                  ? "Wrap up with the key benefits and where are we going next?"
+                                  : "Let’s get into it. What are we cooking up? How are we doing it?"
                             }
                             rows={block.role === "implementation" ? 4 : 3}
                           />

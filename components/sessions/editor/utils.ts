@@ -12,11 +12,5 @@ export const DEFAULT_SESSION_BLOCKS: SessionBlock[] = [
     type: "markdown",
     content: "",
     role: "implementation",
-  },
-  {
-    id: crypto.randomUUID(),
-    type: "markdown",
-    content: "",
-    role: "summary",
-  },
+  }
 ]
