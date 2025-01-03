@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { useTheme } from "next-themes"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { X, Sparkles, FileDiff, Plus, ChevronDown, ChevronUp, SparklesIcon, Circle, ChevronsLeft } from "lucide-react"
+import { X, Sparkles, FileDiff, Plus, ChevronDown, ChevronUp, SparklesIcon, Circle, ChevronsLeft, SquareArrowOutUpRight } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core"
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { SortableItem } from "./editor/sortable-item"
@@ -45,7 +45,9 @@ interface SessionManagerProps {
     authored_at: string
   }
   fullName: string
-  session?: Session
+  session?: Session & {
+    bluesky_post_uri?: string | null
+  }
 }
 
 export function SessionManager({ projectId, commit, fullName, session }: SessionManagerProps) {
@@ -259,9 +261,27 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
       <div className="w-full flex gap-4 justify-between items-center px-8 pb-4 border-b">
         <h3 className="text-2xl font-bold">Live Session</h3>
         <AIConnect enabled={aiEnabled} />
-        <Button variant="outline" onClick={() => setBlueskyDialogOpen(true)}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            if (session?.bluesky_post_uri) {
+              // Convert AT Protocol URI to Bluesky web URL
+              const [, , did, , postId] = session.bluesky_post_uri.split("/")
+              window.open(`https://bsky.app/profile/${did}/post/${postId}`, "_blank")
+            } else {
+              setBlueskyDialogOpen(true)
+            }
+          }}
+        >
           <BlueskyIcon className="h-4 w-4 mr-1 text-blue-500" />
-          Publish to Bluesky
+          {session?.bluesky_post_uri ? (
+            <span className="flex items-center gap-1">
+              <span>View on Bluesky</span>
+              <SquareArrowOutUpRight className="h-3 w-3 scale-75 opacity-70" />
+            </span>
+          ) : (
+            "Publish to Bluesky"
+          )}
         </Button>
         <div className="flex flex-col items-end gap-1 ml-auto">
           <div className="flex items-center gap-2">

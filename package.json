@@ -14,6 +14,7 @@
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:status": "supabase status",
+    "db:local:migrate": "pnpm db:local:push && pnpm db:local:types",
     "db:local:push": "supabase db push --local",
     "db:local:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
     "db:local:reset": "supabase db reset --local && supabase db push --local && pnpm db:local:types",
