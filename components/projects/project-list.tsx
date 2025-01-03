@@ -27,7 +27,6 @@ interface ProjectListProps {
 export function ProjectList({ projects, username, isCurrentUser }: ProjectListProps) {
   const [showImport, setShowImport] = useState(false)
 
-  console.log({ projects })
   return (
     <div className="md:col-span-2">
       <div className="mb-6 relative">

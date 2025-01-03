@@ -32,8 +32,6 @@ export function ProjectImportContainer({ username, className, existingProjects, 
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState("")
 
-  console.log({ existingProjects })
-
   useEffect(() => {
     async function fetchRepos() {
       const supabase = createClient()
@@ -58,7 +56,6 @@ export function ProjectImportContainer({ username, className, existingProjects, 
         if (!response.ok) throw new Error("Failed to fetch repositories")
 
         const data = await response.json()
-        console.log({ data })
         const mappedRepos: GithubRepo[] = data
           .map((repo: GitHubApiResponse) => ({
             id: repo.id,

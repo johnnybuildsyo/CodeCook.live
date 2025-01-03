@@ -107,9 +107,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     } else if (listenForCommits) {
       console.log("Starting commit polling for repo:", fullName)
       // Set the listen start time when we begin polling
-      if (!listenStartTime) {
-        setListenStartTime(new Date().toISOString())
-      }
+      setListenStartTime(new Date().toISOString())
 
       const pollInterval = setInterval(async () => {
         try {
@@ -134,7 +132,14 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
 
       return () => clearInterval(pollInterval)
     }
-  }, [commit.sha, fullName, listenForCommits, listenStartTime])
+  }, [commit.sha, fullName, listenForCommits])
+
+  // Handle listen state changes
+  useEffect(() => {
+    if (listenForCommits && !listenStartTime) {
+      setListenStartTime(new Date().toISOString())
+    }
+  }, [listenForCommits, listenStartTime])
 
   useEffect(() => {
     const handleBeforeUnload = () => {

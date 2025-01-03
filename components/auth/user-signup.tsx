@@ -32,7 +32,6 @@ export function UserSignup() {
           disabled={isLoading}
           onClick={async () => {
             setIsLoading(true)
-            console.log("Starting GitHub sign up...")
             try {
               const url = await signInWithGitHub()
               if (url) {

@@ -162,7 +162,6 @@ export function BlueskyShareDialog({ open, onOpenChange, title, blocks, projectF
 
       const data = await response.json()
       if (!response.ok) {
-        console.log({ posts: editedPosts, data })
         throw new Error(data.error || "Failed to post to Bluesky")
       }
 

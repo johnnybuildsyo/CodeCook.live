@@ -22,7 +22,6 @@ export async function GET(
   const per_page = searchParams.get("per_page") || "30";
 
   const apiUrl = `https://api.github.com/repos/${owner}/${repository}/commits?page=${page}&per_page=${per_page}`;
-  console.log(apiUrl);
 
   const response = await fetch(apiUrl, {
     headers: {
