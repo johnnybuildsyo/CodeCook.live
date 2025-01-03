@@ -9,9 +9,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { SortableItem } from "./editor/sortable-item"
 import { AIConnect } from "./editor/ai-connect"
-import { generateSessionIdeas } from "@/lib/ai/sessions/actions"
 import { getStreamingText } from "@/app/api/ai/util"
-import { readStreamableValue } from "ai/rsc"
 import { SessionPreview } from "./editor/session-preview"
 import { SessionProvider } from "./editor/session-context"
 import { CommitInfo } from "./editor/commit-info"
@@ -35,6 +33,7 @@ import { SessionHeader } from "./editor/session-header"
 import { useSessionAutosave } from "@/hooks/use-session-autosave"
 import { useFileReferences } from "@/hooks/use-file-references"
 import { useImageUpload } from "@/hooks/use-image-upload"
+import { useSessionIdeas } from "@/hooks/use-session-ideas"
 
 interface SessionManagerProps {
   projectId: string
@@ -66,7 +65,6 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
     })
   )
   const [aiEnabled] = useState(true)
-  const [sessionIdeas, setSessionIdeas] = useState<string[]>([])
   const [activeBlockId, setActiveBlockId] = useState<string>()
   const [diffDialogOpen, setDiffDialogOpen] = useState(false)
   const [linkSelectorOpen, setLinkSelectorOpen] = useState(false)
@@ -82,6 +80,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
 
   const { codeChanges } = useFileReferences(blocks, files)
   const { uploadImage } = useImageUpload(blocks, setBlocks)
+  const { sessionIdeas, generateIdeas, clearIdeas } = useSessionIdeas()
 
   // Fetch diff when component mounts
   useEffect(() => {
@@ -102,15 +101,6 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
         const newIndex = items.findIndex((i) => i.id === over?.id)
         return arrayMove(items, oldIndex, newIndex)
       })
-    }
-  }
-
-  const generateIdeas = async () => {
-    const { object } = await generateSessionIdeas(codeChanges)
-    for await (const partialObject of readStreamableValue(object)) {
-      if (partialObject?.sessionIdeas) {
-        setSessionIdeas(partialObject.sessionIdeas)
-      }
     }
   }
 
@@ -140,11 +130,11 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
       </div>
       <div className="space-y-4 2xl:grid 2xl:grid-cols-2">
         <div className="2xl:p-8 space-y-4 2xl:h-screen 2xl:overflow-y-auto">
-          {sessionIdeas.length > 0 && <SessionIdeas ideas={sessionIdeas} onClose={() => setSessionIdeas([])} />}
+          {sessionIdeas.length > 0 && <SessionIdeas ideas={sessionIdeas} onClose={clearIdeas} />}
 
           <CommitInfo commit={commit} files={files} fullName={fullName} />
 
-          <SessionHeader title={title} onTitleChange={setTitle} onGenerateIdeas={generateIdeas} view={view} onViewChange={(v) => setView(v as "edit" | "preview")} />
+          <SessionHeader title={title} onTitleChange={setTitle} onGenerateIdeas={() => generateIdeas(codeChanges)} view={view} onViewChange={(v) => setView(v as "edit" | "preview")} />
 
           {view === "edit" ? (
             <>
