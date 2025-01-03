@@ -25,8 +25,6 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
 
   const { username, projectId, sessionId } = await params
 
-  console.log("About to set session live. Session ID:", sessionId)
-
   // Set session as live
   const { error: liveError } = await supabase
     .from("sessions")
@@ -35,8 +33,6 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
       updated_at: new Date().toISOString(),
     })
     .eq("id", sessionId)
-
-  console.log("Update result:", { error: liveError })
 
   if (liveError) {
     console.error("Failed to set session as live:", liveError)
@@ -49,7 +45,6 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
     .eq("id", sessionId)
     .single()
     .then(({ data }) => {
-      console.log("Initial session fetch:", data)
       if (!data) return null
 
       const defaultBlocks = [
@@ -92,7 +87,6 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
       // If blocks is a string, try to parse it
       if (typeof data.blocks === "string") {
         try {
-          console.log("Parsing blocks:", data.blocks)
           const parsedBlocks = JSON.parse(data.blocks)
           return {
             ...data,
@@ -116,11 +110,6 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
   if (sessionData.user_id !== user.id) {
     redirect(`/${username}/${projectId}/session/${sessionId}`)
   }
-
-  // Verify the update
-  const { data: verifyData } = await supabase.from("sessions").select("is_live").eq("id", sessionId).single()
-
-  console.log("Verification query result:", verifyData)
 
   // Get project details
   const { data: project } = await supabase.from("projects").select("*, profiles!inner(username)").eq("name", projectId).eq("profiles.username", username).single()

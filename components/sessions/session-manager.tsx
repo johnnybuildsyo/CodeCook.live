@@ -115,6 +115,10 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
               author_name: data.commit.author.name,
               authored_at: data.commit.author.date,
             })
+            // Fetch the diff for the new commit
+            const diffResponse = await fetch(`/api/github/commits/${data.sha}/diff?repo=${encodeURIComponent(fullName)}`)
+            const diffData = await diffResponse.json()
+            setFiles(diffData)
           }
         } catch (error) {
           console.error("Error polling for commits:", error)
