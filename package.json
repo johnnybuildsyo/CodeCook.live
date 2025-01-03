@@ -8,7 +8,7 @@
     "start": "next start",
     "go": "pnpm lint && git add . && aicommits && git push origin main",
     "lint": "next lint",
-    "db:push": "supabase db push && pnpm db:types",
+    "db:push": "supabase db push",
     "db:diff": "supabase db diff -f migration",
     "db:types": "supabase gen types typescript > lib/supabase/database.types.ts",
     "db:start": "supabase start",

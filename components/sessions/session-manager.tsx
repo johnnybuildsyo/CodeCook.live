@@ -1,13 +1,10 @@
 "use client"
 
 import { useState, useEffect, useMemo, useCallback } from "react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
 import { useTheme } from "next-themes"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { X, Sparkles, FileDiff, Plus, ChevronDown, ChevronUp, SparklesIcon, Circle, ChevronsLeft, SquareArrowOutUpRight } from "lucide-react"
+import { X, FileDiff, Plus, ChevronDown, ChevronUp, SparklesIcon } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core"
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { SortableItem } from "./editor/sortable-item"
@@ -32,9 +29,11 @@ import { CommitLink } from "./commit-link"
 import { CommitLinkSelector } from "./editor/commit-link-selector"
 import { DEFAULT_SESSION_BLOCKS } from "./editor/utils"
 import { BlueskyShareDialog } from "./editor/bluesky-share-dialog"
-import { BlueskyIcon } from "@/components/icons/bluesky"
 import { useParams } from "next/navigation"
-import { PauseCircleIcon } from "@heroicons/react/24/solid"
+import { SaveStatus } from "./editor/save-status"
+import { BlueskyButton } from "./editor/bluesky-button"
+import { EndSessionButton } from "./editor/end-session-button"
+import { SessionHeader } from "./editor/session-header"
 
 interface SessionManagerProps {
   projectId: string
@@ -52,7 +51,9 @@ interface SessionManagerProps {
 
 export function SessionManager({ projectId, commit, fullName, session }: SessionManagerProps) {
   const { theme } = useTheme()
-  const { username, projectId: projectSlug } = useParams()
+  const params = useParams()
+  const username = typeof params.username === "string" ? params.username : ""
+  const projectSlug = typeof params.projectId === "string" ? params.projectId : ""
   const [title, setTitle] = useState(session?.title || "")
   const [files, setFiles] = useState<FileChange[]>([])
   const [view, setView] = useState<"edit" | "preview">("edit")
@@ -261,52 +262,9 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
       <div className="w-full flex gap-4 justify-between items-center px-8 pb-4 border-b">
         <h3 className="text-2xl font-bold">Live Session</h3>
         <AIConnect enabled={aiEnabled} />
-        <Button
-          variant="outline"
-          onClick={() => {
-            if (session?.bluesky_post_uri) {
-              // Convert AT Protocol URI to Bluesky web URL
-              const [, , did, , postId] = session.bluesky_post_uri.split("/")
-              window.open(`https://bsky.app/profile/${did}/post/${postId}`, "_blank")
-            } else {
-              setBlueskyDialogOpen(true)
-            }
-          }}
-        >
-          <BlueskyIcon className="h-4 w-4 mr-1 text-blue-500" />
-          {session?.bluesky_post_uri ? (
-            <span className="flex items-center gap-1">
-              <span>View on Bluesky</span>
-              <SquareArrowOutUpRight className="h-3 w-3 scale-75 opacity-70" />
-            </span>
-          ) : (
-            "Publish to Bluesky"
-          )}
-        </Button>
-        <div className="flex flex-col items-end gap-1 ml-auto">
-          <div className="flex items-center gap-2">
-            <Circle className="h-4 w-4 rounded-full scale-75 text-green-500 ring-4 ring-green-500/30" fill="currentColor" />
-            <span className="text-xs text-muted-foreground">Connected</span>
-          </div>
-          <div className="text-[10px] text-muted-foreground font-mono">
-            {saveStatus === "saving" && <span>Updating...</span>}
-            {saveStatus === "saved" && lastSavedAt && <span>Last updated at {new Date(lastSavedAt).toLocaleTimeString()}</span>}
-            {saveStatus === "error" && <span className="text-destructive">Update failed</span>}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" className="flex flex-col items-center">
-            <Link href={`/${username}/${projectSlug}`} className="flex items-center text-xs h-auto">
-              <span className="flex items-center gap-1">
-                <PauseCircleIcon className="h-3 w-3" />
-                End Session
-              </span>
-              <span className="text-[10px] font-mono font-light flex items-center gap-0.5">
-                <ChevronsLeft className="h-3 w-3 opacity-50" /> back to project
-              </span>
-            </Link>
-          </Button>
-        </div>
+        <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={() => setBlueskyDialogOpen(true)} />
+        <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
+        <EndSessionButton username={username} projectSlug={projectSlug} />
       </div>
       <div className="space-y-4 2xl:grid 2xl:grid-cols-2">
         <div className="2xl:p-8 space-y-4 2xl:h-screen 2xl:overflow-y-auto">
@@ -314,26 +272,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
 
           <CommitInfo commit={commit} files={files} fullName={fullName} />
 
-          <div className="flex gap-4 items-center py-4">
-            <Input
-              className="!text-2xl font-bold border-t-0 shadow-none border-l-0 border-r-0 rounded-none border-b-foreground/20 pl-1 !focus:outline-none !focus-visible:ring-0 focus:border-b-foreground !ring-0"
-              placeholder="Session title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <Button variant="outline" onClick={generateIdeas}>
-              <>
-                <Sparkles className="h-4 w-4 mr-2 text-yellow-500" />
-                AI Assist
-              </>
-            </Button>
-            <Tabs className="2xl:hidden" value={view} onValueChange={(v) => setView(v as "edit" | "preview")}>
-              <TabsList>
-                <TabsTrigger value="edit">Edit</TabsTrigger>
-                <TabsTrigger value="preview">Preview</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+          <SessionHeader title={title} onTitleChange={setTitle} onGenerateIdeas={generateIdeas} view={view} onViewChange={(v) => setView(v as "edit" | "preview")} />
 
           {view === "edit" ? (
             <>
