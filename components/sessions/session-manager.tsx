@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useTheme } from "next-themes"
@@ -18,7 +18,7 @@ import { SessionProvider } from "./editor/session-context"
 import { CommitInfo } from "./editor/commit-info"
 import { ImageUpload } from "./editor/image-upload"
 import { DiffSelector } from "./editor/diff-selector"
-import { cn, shouldExcludeFile } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import { CommitDiff } from "./editor/commit-diff"
 import { SessionBlock, FileChange } from "@/lib/types/session"
 import { SessionIdeas } from "./editor/session-ideas"
@@ -34,6 +34,7 @@ import { BlueskyButton } from "./editor/bluesky-button"
 import { EndSessionButton } from "./editor/end-session-button"
 import { SessionHeader } from "./editor/session-header"
 import { useSessionAutosave } from "@/hooks/use-session-autosave"
+import { useFileReferences } from "@/hooks/use-file-references"
 
 interface SessionManagerProps {
   projectId: string
@@ -79,32 +80,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
     blocks,
   })
 
-  // Get filenames from code blocks
-  const referencedFiles = useMemo(() => {
-    const codeFilenames = new Set<string>()
-    blocks.forEach((block) => {
-      if (block.type === "code" || block.type === "diff") {
-        if (block.file?.filename) {
-          codeFilenames.add(block.file.filename)
-        }
-      } else if (block.type === "commit-links" && block.commits) {
-        block.commits.forEach((link) => {
-          codeFilenames.add(link.filename)
-        })
-      }
-    })
-    return codeFilenames
-  }, [blocks])
-
-  // If we have code blocks, only use those files. Otherwise, use all files.
-  let codeChanges = useMemo(() => {
-    const fileArray = Array.isArray(files) ? files : []
-    const relevantFiles = referencedFiles.size > 0 ? fileArray.filter((f) => referencedFiles.has(f.filename)) : fileArray.filter((f) => !shouldExcludeFile(f.filename))
-    return relevantFiles.map((f) => `File: ${f.filename}\n\nChanges:\n${f.newValue}`).join("\n\n---\n\n")
-  }, [files, referencedFiles])
-
-  // Truncate if too long
-  codeChanges = codeChanges.length > 20000 ? codeChanges.slice(0, 20000) + "...(truncated)" : codeChanges
+  const { codeChanges } = useFileReferences(blocks, files)
 
   // Fetch diff when component mounts
   useEffect(() => {
