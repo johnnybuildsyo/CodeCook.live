@@ -90,4 +90,31 @@ export async function upsertSession(projectId: string, sessionData: SessionData,
     console.error("Failed to save session:", error)
     throw error
   }
+}
+
+export async function checkStaleSession(sessionId: string) {
+  const supabase = await createClient()
+  const STALE_THRESHOLD = 5 * 60 * 1000 // 5 minutes in milliseconds
+
+  const { data: session } = await supabase
+    .from("sessions")
+    .select("updated_at, is_live")
+    .eq("id", sessionId)
+    .single()
+
+  if (session?.is_live) {
+    const lastUpdate = new Date(session.updated_at).getTime()
+    const now = new Date().getTime()
+    
+    if (now - lastUpdate > STALE_THRESHOLD) {
+      await supabase
+        .from("sessions")
+        .update({ is_live: false })
+        .eq("id", sessionId)
+      
+      return true // Session was stale and updated
+    }
+  }
+  
+  return false // Session was not stale
 } 

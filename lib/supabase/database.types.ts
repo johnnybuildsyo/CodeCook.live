@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 export type Json =
   | string
   | number
@@ -220,9 +219,11 @@ export type Database = {
       sessions: {
         Row: {
           blocks: Json
+          bluesky_post_uri: string | null
           commit_shas: string[]
           created_at: string
           id: string
+          is_live: boolean | null
           project_id: string
           title: string
           updated_at: string
@@ -230,9 +231,11 @@ export type Database = {
         }
         Insert: {
           blocks: Json
+          bluesky_post_uri?: string | null
           commit_shas?: string[]
           created_at?: string
           id?: string
+          is_live?: boolean | null
           project_id: string
           title: string
           updated_at?: string
@@ -240,9 +243,11 @@ export type Database = {
         }
         Update: {
           blocks?: Json
+          bluesky_post_uri?: string | null
           commit_shas?: string[]
           created_at?: string
           id?: string
+          is_live?: boolean | null
           project_id?: string
           title?: string
           updated_at?: string

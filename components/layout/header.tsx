@@ -38,8 +38,6 @@ export default function Header() {
     initAuth()
   }, [])
 
-  console.log({ user, profile })
-
   return (
     <header className="py-4 px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 w-full h-20 border-b border-foreground/10">
       <div className="container flex h-full items-center justify-between">

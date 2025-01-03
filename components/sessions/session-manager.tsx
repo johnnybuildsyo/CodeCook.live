@@ -44,12 +44,11 @@ interface SessionManagerProps {
     authored_at: string
   }
   fullName: string
-  session?: Session & {
-    bluesky_post_uri?: string | null
-  }
+  session: Session
+  onUnmount?: () => Promise<void>
 }
 
-export function SessionManager({ projectId, commit, fullName, session }: SessionManagerProps) {
+export function SessionManager({ projectId, commit, fullName, session, onUnmount }: SessionManagerProps) {
   const { theme } = useTheme()
   const params = useParams()
   const username = typeof params.username === "string" ? params.username : ""
@@ -107,6 +106,19 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
     fetchDiff()
   }, [commit.sha, fullName])
 
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      onUnmount?.()
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+      onUnmount?.()
+    }
+  }, [onUnmount])
+
   return (
     <SessionProvider>
       <div className="w-full flex gap-4 justify-between items-center px-8 pb-4 border-b">
@@ -114,7 +126,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
         <AIConnect enabled={aiEnabled} />
         <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
         <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
-        <EndSessionButton username={username} projectSlug={projectSlug} />
+        <EndSessionButton username={username} projectSlug={projectSlug} sessionId={session.id} />
       </div>
       <div className="space-y-4 2xl:grid 2xl:grid-cols-2">
         <div className="2xl:p-8 space-y-4 2xl:h-screen 2xl:overflow-y-auto">

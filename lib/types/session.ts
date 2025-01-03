@@ -33,4 +33,6 @@ export interface Session {
   user_id: string
   commit_shas: string[]
   blocks: SessionBlock[]
+  is_live: boolean | null
+  bluesky_post_uri?: string | null
 } 
