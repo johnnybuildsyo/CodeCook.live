@@ -17,7 +17,7 @@ export function SessionList({ sessions, username, projectId, currentUser }: Sess
   return (
     <div className="space-y-4">
       {sessions.map((session) => (
-        <SessionCard key={session.id} session={session} username={username} projectId={projectId} currentUser={currentUser} />
+        <SessionCard key={session.id} session={session} username={username} projectId={projectId} currentUser={currentUser ? { id: currentUser.id } : undefined} />
       ))}
     </div>
   )

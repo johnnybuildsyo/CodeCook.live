@@ -32,7 +32,9 @@ export function SessionCard({ session, username, projectId, featured = false, cu
         <div className="text-xs font-mono flex items-center space-x-2 pb-2">
           <span>{new Date(session.created_at).toLocaleDateString()}</span>
           <span>·</span>
-          <span>{session.commit_shas.length} commits</span>
+          <span>
+            {session.commit_shas.length} commit{session.commit_shas.length > 1 ? "s" : ""}
+          </span>
         </div>
         <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground line-clamp-2 mb-4">
           <ReactMarkdown>{previewContent}</ReactMarkdown>
