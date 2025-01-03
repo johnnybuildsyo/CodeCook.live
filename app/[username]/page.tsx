@@ -4,6 +4,7 @@ import { ProjectImportContainer } from "@/components/projects/project-import-con
 import Header from "@/components/layout/header"
 import { createClient } from "@/lib/supabase/server"
 import type { Json } from "@/lib/supabase/database.types"
+import type { ProfileLink } from "@/lib/types/user"
 
 interface UserPageProps {
   params: Promise<{
@@ -85,7 +86,7 @@ export default async function UserPage({ params }: UserPageProps) {
               isCurrentUser={isCurrentUser}
               links={
                 profile.links
-                  ? (profile.links as Json[]).map((link) => {
+                  ? (profile.links as Json[]).map((link): ProfileLink => {
                       const typedLink = link as Record<string, string>
                       return {
                         title: typedLink.title || "",
