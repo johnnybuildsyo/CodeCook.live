@@ -1,4 +1,4 @@
-import { SessionBlock } from "@/lib/types/session"
+import { Block } from "@/lib/types/session"
 
 export const MAX_POST_LENGTH = 300
 
@@ -170,7 +170,7 @@ export function bisectText(text: string, maxLength: number): string[] {
 
 export function formatBlueskyThread(
   title: string,
-  blocks: SessionBlock[],
+  blocks: Block[],
   projectFullName?: string,
   username?: string,
   projectId?: string
@@ -189,27 +189,9 @@ export function formatBlueskyThread(
   }
 
   blocks.forEach((block) => {
-    if (block.type === "image") {
-      hasImages = true
-      const images = extractImagesFromMarkdown(block.content)
-      if (images.length > 0) {
-        pushCurrentPost() // Push any accumulated text before the image
-        currentImages.push(...images)
-        pushCurrentPost() // Push a post with just the image
-      }
-    } else if (block.type === "commit-links" && block.commits && projectFullName) {
-      // Format first commit link as GitHub URL
-      const commitText = `github.com/${projectFullName}/commit/${block.commits[0].sha.slice(0, 7)}`
-
-      if ((currentPost + commitText).length > MAX_POST_LENGTH) {
-        pushCurrentPost()
-        currentPost = commitText + "\n\n"
-      } else {
-        currentPost += commitText + "\n\n"
-      }
-    } else if (block.type === "markdown") {
-      // First extract any inline images
-      const images = extractImagesFromMarkdown(block.content)
+    if (block.type === "markdown") {
+      // Extract any inline images
+      const images = extractImagesFromMarkdown(block.content || "")
       if (images.length > 0) {
         hasImages = true
         pushCurrentPost() // Push any accumulated text before the inline images
@@ -217,7 +199,7 @@ export function formatBlueskyThread(
       }
 
       // Then convert the text
-      const text = convertMarkdownToBluesky(block.content)
+      const text = convertMarkdownToBluesky(block.content || "")
       const chunks = splitTextIntoChunks(text, MAX_POST_LENGTH)
 
       // Add each chunk as a separate post
@@ -234,8 +216,18 @@ export function formatBlueskyThread(
           currentPost = chunk + "\n\n"
         }
       })
+    } else if (block.type === "commit-links" && block.commits && projectFullName) {
+      // Format first commit link as GitHub URL
+      const commitText = `github.com/${projectFullName}/commit/${block.commits[0].sha.slice(0, 7)}`
+
+      if ((currentPost + commitText).length > MAX_POST_LENGTH) {
+        pushCurrentPost()
+        currentPost = commitText + "\n\n"
+      } else {
+        currentPost += commitText + "\n\n"
+      }
     } else if (block.type === "code" || block.type === "diff") {
-      const codeText = formatCodeBlock(block.content, block.type === "code" ? (block as { language?: string }).language : "diff")
+      const codeText = formatCodeBlock(block.content || "", block.type === "code" ? (block as { language?: string }).language : "diff")
       if ((currentPost + codeText).length > MAX_POST_LENGTH) {
         pushCurrentPost()
         posts.push({ text: codeText })

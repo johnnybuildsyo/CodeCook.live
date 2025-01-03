@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SessionBlock } from "@/lib/types/session"
+import { Block } from "@/lib/types/session"
 import { BlueskyIcon } from "@/components/icons/bluesky"
 import { useEffect, useState } from "react"
 import { connectBlueskyAccount, disconnectBlueskyAccount, getBlueskyConnection } from "@/app/api/bluesky/actions"
@@ -16,7 +16,7 @@ interface BlueskyShareDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
-  blocks: SessionBlock[]
+  blocks: Block[]
   projectFullName?: string
 }
 
@@ -33,7 +33,6 @@ export function BlueskyShareDialog({ open, onOpenChange, title, blocks, projectF
   const [password, setPassword] = useState("")
   const [editedPosts, setEditedPosts] = useState<ThreadPost[]>([])
   const [isPosting, setIsPosting] = useState(false)
-  const hasImages = blocks.some((block) => block.type === "image")
 
   const commonHashtags = ["buildinpublic", "codethread", "indiehacker", "webdev", "gamedev", "codecooking"]
 
@@ -223,7 +222,6 @@ export function BlueskyShareDialog({ open, onOpenChange, title, blocks, projectF
                   )}
                   <div className="space-y-2">
                     <ThreadPreview posts={editedPosts} onPostChange={handlePostChange} />
-                    {hasImages && <p className="text-xs text-muted-foreground mt-1">Images will be attached to their respective posts</p>}
                   </div>
                 </div>
                 <DialogFooter>

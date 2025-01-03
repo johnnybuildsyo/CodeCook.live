@@ -1,4 +1,4 @@
-import { FileChange, SessionBlock } from "@/lib/types/session"
+import { FileChange, Block } from "@/lib/types/session"
 
 interface UseFileSelectorResult {
   handleDiffSelection: (
@@ -6,16 +6,16 @@ interface UseFileSelectorResult {
     activeBlockId: string,
     commitSha: string,
     fullName: string,
-    blocks: SessionBlock[]
-  ) => SessionBlock[]
+    blocks: Block[]
+  ) => Block[]
   handleLinkSelection: (
     selectedFiles: FileChange[],
     activeBlockId: string,
     commitSha: string,
     fullName: string,
-    blocks: SessionBlock[]
-  ) => SessionBlock[]
-  getExistingDiffFiles: (blocks: SessionBlock[], activeBlockId: string | undefined) => string[]
+    blocks: Block[]
+  ) => Block[]
+  getExistingDiffFiles: (blocks: Block[], activeBlockId: string | undefined) => string[]
 }
 
 export function useFileSelector(): UseFileSelectorResult {
@@ -24,9 +24,9 @@ export function useFileSelector(): UseFileSelectorResult {
     activeBlockId: string,
     commitSha: string,
     fullName: string,
-    blocks: SessionBlock[]
+    blocks: Block[]
   ) => {
-    const index = blocks.findIndex((s: SessionBlock) => s.id === activeBlockId)
+    const index = blocks.findIndex((s: Block) => s.id === activeBlockId)
     const newBlocks = [...blocks]
     const activeBlock = newBlocks[index]
 
@@ -89,9 +89,9 @@ export function useFileSelector(): UseFileSelectorResult {
     activeBlockId: string,
     commitSha: string,
     fullName: string,
-    blocks: SessionBlock[]
+    blocks: Block[]
   ) => {
-    const index = blocks.findIndex((s: SessionBlock) => s.id === activeBlockId)
+    const index = blocks.findIndex((s: Block) => s.id === activeBlockId)
     const activeBlock = blocks[index]
 
     if (activeBlock?.type === "commit-links") {
@@ -101,7 +101,7 @@ export function useFileSelector(): UseFileSelectorResult {
         filename: file.filename,
       }))
 
-      return blocks.map((block: SessionBlock, i: number) =>
+      return blocks.map((block: Block, i: number) =>
         i === index
           ? {
               ...block,
@@ -114,7 +114,7 @@ export function useFileSelector(): UseFileSelectorResult {
     return blocks
   }
 
-  const getExistingDiffFiles = (blocks: SessionBlock[], activeBlockId: string | undefined) => {
+  const getExistingDiffFiles = (blocks: Block[], activeBlockId: string | undefined) => {
     return blocks.find((s) => s.id === activeBlockId)?.type === "diff" 
       ? blocks.filter((s) => s.type === "diff").map((s) => s.file?.filename || "") 
       : []

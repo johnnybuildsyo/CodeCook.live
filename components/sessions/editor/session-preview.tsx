@@ -1,10 +1,10 @@
-import { SessionBlock } from "@/lib/types/session"
+import { Block } from "@/lib/types/session"
 import { SessionProvider } from "./session-context"
 import { SessionContent } from "../session-content"
 
 interface SessionPreviewProps {
   title: string
-  blocks: SessionBlock[]
+  blocks: Block[]
   theme?: string
   fullName: string
   commit: {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { SessionBlock } from "@/lib/types/session"
+import { Block } from "@/lib/types/session"
 import { upsertSession } from "@/app/api/sessions/actions"
 
 interface UseSessionAutosaveProps {
@@ -7,7 +7,7 @@ interface UseSessionAutosaveProps {
   commitSha: string
   sessionId?: string
   title: string
-  blocks: SessionBlock[]
+  blocks: Block[]
 }
 
 interface AutosaveState {
@@ -28,10 +28,10 @@ export function useSessionAutosave({
   })
 
   const debouncedSave = useCallback(
-    async (title: string, blocks: SessionBlock[]) => {
+    async (title: string, blocks: Block[]) => {
       setSaveState(prev => ({ ...prev, status: "saving" }))
       try {
-        const cleanedBlocks = blocks.map((block): SessionBlock => {
+        const cleanedBlocks = blocks.map((block): Block => {
           switch (block.type) {
             case "markdown":
               return {
@@ -52,7 +52,7 @@ export function useSessionAutosave({
                 id: block.id,
                 type: "code",
                 content: block.content || "",
-                filename: block.filename,
+                file: block.file,
               }
             case "diff":
               return {
@@ -60,13 +60,6 @@ export function useSessionAutosave({
                 type: "diff",
                 content: block.content || "",
                 file: block.file,
-              }
-            case "image":
-              return {
-                id: block.id,
-                type: "image",
-                content: block.content || "",
-                imageUrl: block.imageUrl,
               }
           }
         })

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
-import { SessionBlock } from "@/lib/types/session"
+import { Block } from "@/lib/types/session"
 
 interface UseImageUploadResult {
   isUploading: boolean
@@ -8,8 +8,8 @@ interface UseImageUploadResult {
 }
 
 export function useImageUpload(
-  blocks: SessionBlock[],
-  setBlocks: React.Dispatch<React.SetStateAction<SessionBlock[]>>
+  blocks: Block[],
+  setBlocks: React.Dispatch<React.SetStateAction<Block[]>>
 ): UseImageUploadResult {
   const [isUploading, setIsUploading] = useState(false)
 

@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { SessionBlock, FileChange } from "@/lib/types/session"
+import { Block, FileChange } from "@/lib/types/session"
 import { shouldExcludeFile } from "@/lib/utils"
 
 interface UseFileReferencesResult {
@@ -7,7 +7,7 @@ interface UseFileReferencesResult {
   codeChanges: string
 }
 
-export function useFileReferences(blocks: SessionBlock[], files: FileChange[]): UseFileReferencesResult {
+export function useFileReferences(blocks: Block[], files: FileChange[]): UseFileReferencesResult {
   // Get filenames from code blocks
   const referencedFiles = useMemo(() => {
     const codeFilenames = new Set<string>()

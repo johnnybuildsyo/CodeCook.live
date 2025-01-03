@@ -4,11 +4,11 @@ import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/pris
 import { getLanguageFromFilename } from "@/lib/utils"
 import { CommitLink as CommitLinkComponent } from "./commit-link"
 import { CommitDiff } from "./editor/commit-diff"
-import { SessionBlock } from "@/lib/types/session"
+import { Block } from "@/lib/types/session"
 
 type SessionContentProps = {
   title: string
-  blocks: SessionBlock[]
+  blocks: Block[]
   theme?: string
   fullName: string
   showDate?: boolean
@@ -38,22 +38,17 @@ export function SessionContent({ title, blocks, theme, fullName, showDate, creat
                 <ReactMarkdown>{block.content || ""}</ReactMarkdown>
               </div>
             )}
-            {block.type === "code" && block.content && block.filename && (
+            {block.type === "code" && block.file && (
               <div className="relative font-mono text-sm bg-muted rounded-lg mb-4">
-                <div className="text-xs text-muted-foreground p-4 pb-0">{block.filename}</div>
+                <div className="text-xs text-muted-foreground p-4 pb-0">{block.file.filename}</div>
                 <div className="overflow-auto">
-                  <SyntaxHighlighter language={getLanguageFromFilename(block.filename)} style={theme === "dark" ? oneDark : oneLight} customStyle={{ margin: 0, background: "transparent" }}>
-                    {block.content}
+                  <SyntaxHighlighter language={getLanguageFromFilename(block.file.filename)} style={theme === "dark" ? oneDark : oneLight} customStyle={{ margin: 0, background: "transparent" }}>
+                    {block.file.newValue}
                   </SyntaxHighlighter>
                 </div>
               </div>
             )}
             {block.type === "diff" && block.file && <CommitDiff files={[block.file]} defaultRenderDiff={true} theme={theme} />}
-            {block.type === "image" && block.imageUrl && (
-              <div className="my-4">
-                <img src={block.imageUrl} alt="" className="rounded-lg" />
-              </div>
-            )}
             {block.type === "commit-links" && block.commits && fullName && (
               <div className="not-prose flex flex-col gap-1">
                 {block.commits.map((link) => (

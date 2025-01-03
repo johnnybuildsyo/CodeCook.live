@@ -8,7 +8,7 @@ import { SessionList } from "@/components/sessions/session-list"
 import { ProjectActions } from "./project-actions"
 import Header from "@/components/layout/header"
 import type { Session as SupabaseSession } from "@supabase/supabase-js"
-import type { Session, SessionBlock } from "@/lib/types/session"
+import type { Session, Block } from "@/lib/types/session"
 
 interface ProjectStats {
   stars: number
@@ -148,7 +148,7 @@ export function ProjectView({ project, stats, sessions, session, username, proje
           </div>
           <p className="text-muted-foreground">{project.description}</p>
           <div className="md:col-span-3 mt-8 border-b-2 border-dotted">
-            <SessionList sessions={sessions?.map((t) => ({ ...t, blocks: t.blocks as unknown as SessionBlock[] })) || []} username={username} projectId={projectId} currentUser={session?.user} />
+            <SessionList sessions={sessions?.map((t) => ({ ...t, blocks: t.blocks as unknown as Block[] })) || []} username={username} projectId={projectId} currentUser={session?.user} />
           </div>
           {isOwner && <ProjectActions username={username} projectId={projectId} fullName={project.full_name} totalCommits={stats?.commits || 0} hasGitHubToken={!!session?.provider_token} />}
         </div>

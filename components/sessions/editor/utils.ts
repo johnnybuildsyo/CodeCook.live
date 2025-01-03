@@ -1,6 +1,6 @@
-import type { SessionBlock } from "@/lib/types/session"
+import type { Block } from "@/lib/types/session"
 
-export const DEFAULT_SESSION_BLOCKS: SessionBlock[] = [
+export const DEFAULT_SESSION_BLOCKS: Block[] = [
   {
     id: crypto.randomUUID(),
     type: "markdown",

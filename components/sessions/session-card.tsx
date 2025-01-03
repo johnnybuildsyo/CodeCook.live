@@ -4,7 +4,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
-import { SessionBlock, Session } from "@/lib/types/session"
+import { Block, Session } from "@/lib/types/session"
 import { BoltIcon } from "@heroicons/react/24/solid"
 
 interface SessionCardProps {
@@ -20,7 +20,7 @@ interface SessionCardProps {
 export function SessionCard({ session, username, projectId, featured = false, currentUser }: SessionCardProps) {
   const sessionUrl = `/${username}/${projectId}/session/${session.id}`
   const startSessionUrl = `${sessionUrl}/live`
-  const introSection = session.blocks.find((section: SessionBlock) => section.type === "markdown" && section.role === "intro")
+  const introSection = session.blocks.find((section: Block) => section.type === "markdown" && section.role === "intro")
   const introContent = introSection?.content || ""
   const previewContent = introContent.split("\n")[0] || "No preview available"
   const isAuthor = currentUser?.id === session.user_id

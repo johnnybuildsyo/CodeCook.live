@@ -1,31 +1,31 @@
 import { useState } from "react"
 import { DragEndEvent } from "@dnd-kit/core"
 import { arrayMove } from "@dnd-kit/sortable"
-import { SessionBlock } from "@/lib/types/session"
+import { Block } from "@/lib/types/session"
 import { DEFAULT_SESSION_BLOCKS } from "@/components/sessions/editor/utils"
 import { getStreamingText } from "@/app/api/ai/util"
 import { generateBlockPrompt } from "@/lib/ai/sessions/prompts"
 
 interface UseBlockManagerProps {
-  initialBlocks?: SessionBlock[]
+  initialBlocks?: Block[]
   title: string
   codeChanges: string
 }
 
 interface UseBlockManagerResult {
-  blocks: SessionBlock[]
+  blocks: Block[]
   handleDragEnd: (event: DragEndEvent) => void
-  generateMarkdownBlock: (block: SessionBlock) => Promise<void>
+  generateMarkdownBlock: (block: Block) => Promise<void>
   addNewBlock: (afterId: string) => void
   removeBlock: (blockId: string) => void
   updateBlockContent: (blockId: string, content: string) => void
   updateBlockCollapsed: (blockId: string, isCollapsed: boolean) => void
   updateBlockFile: (blockId: string, newValue: string) => void
-  setBlocks: React.Dispatch<React.SetStateAction<SessionBlock[]>>
+  setBlocks: React.Dispatch<React.SetStateAction<Block[]>>
 }
 
 export function useBlockManager({ initialBlocks, title, codeChanges }: UseBlockManagerProps): UseBlockManagerResult {
-  const [blocks, setBlocks] = useState<SessionBlock[]>(initialBlocks || DEFAULT_SESSION_BLOCKS)
+  const [blocks, setBlocks] = useState<Block[]>(initialBlocks || DEFAULT_SESSION_BLOCKS)
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -38,7 +38,7 @@ export function useBlockManager({ initialBlocks, title, codeChanges }: UseBlockM
     }
   }
 
-  const generateMarkdownBlock = async (block: SessionBlock) => {
+  const generateMarkdownBlock = async (block: Block) => {
     const prompt = generateBlockPrompt({
       block,
       title,

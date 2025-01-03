@@ -3,10 +3,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { Database } from "@/lib/supabase/database.types"
-import { SessionBlock } from "@/lib/types/session"
+import { Block } from "@/lib/types/session"
 
 export type SessionData = Pick<Database["public"]["Tables"]["sessions"]["Insert"], "title" | "commit_shas"> & {
-  blocks: SessionBlock[]
+  blocks: Block[]
 }
 
 export async function upsertSession(projectId: string, sessionData: SessionData, sessionId?: string) {
