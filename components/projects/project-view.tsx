@@ -10,9 +10,29 @@ import Header from "@/components/layout/header"
 import type { Session as SupabaseSession } from "@supabase/supabase-js"
 import type { Session, SessionBlock } from "@/lib/types/session"
 
+interface ProjectStats {
+  stars: number
+  forks: number
+  watchers: number
+  commits: number
+}
+
+interface Project {
+  owner_id: string
+  display_name: string
+  name: string
+  homepage?: string
+  full_name: string
+  description: string
+  created_at: string
+  profiles: {
+    name: string
+  }
+}
+
 interface ProjectViewProps {
-  project: any
-  stats: any
+  project: Project
+  stats: ProjectStats
   sessions: Session[]
   session: SupabaseSession | null
   username: string

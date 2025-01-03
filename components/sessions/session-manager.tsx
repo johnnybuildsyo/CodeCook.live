@@ -33,6 +33,7 @@ import { useImageUpload } from "@/hooks/use-image-upload"
 import { useSessionIdeas } from "@/hooks/use-session-ideas"
 import { useDialogManager } from "@/hooks/use-dialog-manager"
 import { useBlockManager } from "@/hooks/use-block-manager"
+import { useFileSelector } from "@/hooks/use-file-selector"
 
 interface SessionManagerProps {
   projectId: string
@@ -94,6 +95,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
 
   const { uploadImage } = useImageUpload(blocks, setBlocks)
   const { sessionIdeas, generateIdeas, clearIdeas } = useSessionIdeas()
+  const { handleDiffSelection, handleLinkSelection, getExistingDiffFiles } = useFileSelector()
 
   // Fetch diff when component mounts
   useEffect(() => {
@@ -248,66 +250,9 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
         open={diffDialogOpen}
         onClose={closeDiffDialog}
         files={files}
-        existingFiles={blocks.find((s) => s.id === activeBlockId)?.type === "diff" ? blocks.filter((s) => s.type === "diff").map((s) => s.file?.filename || "") : []}
+        existingFiles={getExistingDiffFiles(blocks, activeBlockId)}
         onSelect={(selections) => {
-          setBlocks((current) => {
-            const index = current.findIndex((s) => s.id === activeBlockId)
-            const newBlocks = [...current]
-            const activeBlock = newBlocks[index]
-
-            // Group file-link selections into a single commit-links block
-            const fileLinks = selections
-              .filter((s) => s.type === "commit-links")
-              .map((s) => ({
-                sha: commit.sha,
-                filename: s.file.filename,
-              }))
-
-            if (fileLinks.length > 0) {
-              if (activeBlock?.type === "commit-links" && activeBlock.commits) {
-                // Merge new links with existing ones, avoiding duplicates
-                const existingFilenames = new Set(activeBlock.commits.map((c) => c.filename))
-                const uniqueNewLinks = fileLinks.filter((link) => !existingFilenames.has(link.filename))
-
-                newBlocks[index] = {
-                  ...activeBlock,
-                  content: [...(activeBlock.commits || []), ...uniqueNewLinks].map((link) => `[${link.filename}](https://github.com/${fullName}/blob/${link.sha}/${link.filename})`).join("\n\n"),
-                  commits: [...(activeBlock.commits || []), ...uniqueNewLinks],
-                }
-              } else {
-                // Create new commit-links block
-                newBlocks.splice(index + 1, 0, {
-                  id: crypto.randomUUID(),
-                  type: "commit-links",
-                  content: fileLinks.map((link) => `[${link.filename}](https://github.com/${fullName}/blob/${link.sha}/${link.filename})`).join("\n\n"),
-                  commits: fileLinks,
-                })
-              }
-            }
-
-            // Add remaining diff/code blocks
-            selections
-              .filter((s) => s.type !== "commit-links")
-              .forEach((selection, i) => {
-                if (selection.type === "code") {
-                  newBlocks.splice(index + 1 + i, 0, {
-                    id: crypto.randomUUID(),
-                    type: "code",
-                    content: selection.file.newValue,
-                    file: selection.file,
-                  })
-                } else {
-                  newBlocks.splice(index + 1 + i, 0, {
-                    id: crypto.randomUUID(),
-                    type: selection.type,
-                    content: "",
-                    file: selection.file,
-                  })
-                }
-              })
-
-            return newBlocks
-          })
+          setBlocks(handleDiffSelection(selections, activeBlockId!, commit.sha, fullName, blocks))
           closeDiffDialog()
         }}
       />
@@ -318,29 +263,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
         files={files}
         existingLinks={blocks.find((s) => s.id === activeBlockId)?.commits || []}
         onSelect={(selectedFiles) => {
-          setBlocks((current) => {
-            const index = current.findIndex((s) => s.id === activeBlockId)
-            const activeBlock = current[index]
-
-            if (activeBlock?.type === "commit-links") {
-              const existingCommits = activeBlock.commits || []
-              const newLinks = selectedFiles.map((file) => ({
-                sha: commit.sha,
-                filename: file.filename,
-              }))
-
-              return current.map((block, i) =>
-                i === index
-                  ? {
-                      ...block,
-                      content: [...existingCommits, ...newLinks].map((link) => `[${link.filename}](https://github.com/${fullName}/blob/${link.sha}/${link.filename})`).join("\n\n"),
-                      commits: [...existingCommits, ...newLinks],
-                    }
-                  : block
-              )
-            }
-            return current
-          })
+          setBlocks(handleLinkSelection(selectedFiles, activeBlockId!, commit.sha, fullName, blocks))
           closeLinkSelector()
         }}
       />

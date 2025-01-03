@@ -12,7 +12,9 @@ interface SessionCardProps {
   username: string
   projectId: string
   featured?: boolean
-  currentUser?: any
+  currentUser?: {
+    id: string
+  }
 }
 
 export function SessionCard({ session, username, projectId, featured = false, currentUser }: SessionCardProps) {

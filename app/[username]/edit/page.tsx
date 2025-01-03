@@ -28,10 +28,13 @@ export default async function EditProfilePage({ params }: EditProfilePageProps) 
     .then(({ data }) => {
       if (!data) return null
       const links: ProfileLink[] = data.links
-        ? (data.links as Json[]).map((link) => ({
-            title: (link as any).title || "",
-            url: (link as any).url || "",
-          }))
+        ? (data.links as Json[]).map((link) => {
+            const typedLink = link as Record<string, string>
+            return {
+              title: typedLink.title || "",
+              url: typedLink.url || "",
+            }
+          })
         : []
       return {
         ...data,

@@ -8,3 +8,4 @@ api/socks.js
 node-modules
 *.md
 *.mdx
+lib/supabase/database.types.ts

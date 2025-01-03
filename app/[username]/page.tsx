@@ -85,10 +85,13 @@ export default async function UserPage({ params }: UserPageProps) {
               isCurrentUser={isCurrentUser}
               links={
                 profile.links
-                  ? (profile.links as Json[]).map((link) => ({
-                      title: (link as any).title || "",
-                      url: (link as any).url || "",
-                    }))
+                  ? (profile.links as Json[]).map((link) => {
+                      const typedLink = link as Record<string, string>
+                      return {
+                        title: typedLink.title || "",
+                        url: typedLink.url || "",
+                      }
+                    })
                   : []
               }
             />
