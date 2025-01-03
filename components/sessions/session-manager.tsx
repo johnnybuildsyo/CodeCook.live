@@ -34,6 +34,7 @@ import { useSessionAutosave } from "@/hooks/use-session-autosave"
 import { useFileReferences } from "@/hooks/use-file-references"
 import { useImageUpload } from "@/hooks/use-image-upload"
 import { useSessionIdeas } from "@/hooks/use-session-ideas"
+import { useDialogManager } from "@/hooks/use-dialog-manager"
 
 interface SessionManagerProps {
   projectId: string
@@ -65,10 +66,9 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
     })
   )
   const [aiEnabled] = useState(true)
-  const [activeBlockId, setActiveBlockId] = useState<string>()
-  const [diffDialogOpen, setDiffDialogOpen] = useState(false)
-  const [linkSelectorOpen, setLinkSelectorOpen] = useState(false)
-  const [blueskyDialogOpen, setBlueskyDialogOpen] = useState(false)
+
+  const { activeBlockId, diffDialogOpen, linkSelectorOpen, blueskyDialogOpen, openDiffDialog, closeDiffDialog, openLinkSelector, closeLinkSelector, openBlueskyDialog, closeBlueskyDialog } =
+    useDialogManager()
 
   const { status: saveStatus, lastSavedAt } = useSessionAutosave({
     projectId,
@@ -124,7 +124,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
       <div className="w-full flex gap-4 justify-between items-center px-8 pb-4 border-b">
         <h3 className="text-2xl font-bold">Live Session</h3>
         <AIConnect enabled={aiEnabled} />
-        <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={() => setBlueskyDialogOpen(true)} />
+        <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
         <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
         <EndSessionButton username={username} projectSlug={projectSlug} />
       </div>
@@ -171,14 +171,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
                                 uploadImage(file, block.id)
                               }}
                             />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setActiveBlockId(block.id)
-                                setDiffDialogOpen(true)
-                              }}
-                            >
+                            <Button variant="outline" size="sm" onClick={() => openDiffDialog(block.id)}>
                               <FileDiff className="h-4 w-4 mr-1" />
                               Add Code
                             </Button>
@@ -256,13 +249,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
                               </div>
                             ))}
                             <div>
-                              <button
-                                className="text-xs pl-4"
-                                onClick={() => {
-                                  setActiveBlockId(block.id)
-                                  setLinkSelectorOpen(true)
-                                }}
-                              >
+                              <button className="text-xs pl-4" onClick={() => openLinkSelector(block.id)}>
                                 + add links
                               </button>
                             </div>
@@ -293,10 +280,7 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
 
       <DiffSelector
         open={diffDialogOpen}
-        onClose={() => {
-          setDiffDialogOpen(false)
-          setActiveBlockId(undefined)
-        }}
+        onClose={closeDiffDialog}
         files={files}
         existingFiles={blocks.find((s) => s.id === activeBlockId)?.type === "diff" ? blocks.filter((s) => s.type === "diff").map((s) => s.file?.filename || "") : []}
         onSelect={(selections) => {
@@ -358,17 +342,13 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
 
             return newBlocks
           })
-          setDiffDialogOpen(false)
-          setActiveBlockId(undefined)
+          closeDiffDialog()
         }}
       />
 
       <CommitLinkSelector
         open={linkSelectorOpen}
-        onClose={() => {
-          setLinkSelectorOpen(false)
-          setActiveBlockId(undefined)
-        }}
+        onClose={closeLinkSelector}
         files={files}
         existingLinks={blocks.find((s) => s.id === activeBlockId)?.commits || []}
         onSelect={(selectedFiles) => {
@@ -395,10 +375,11 @@ export function SessionManager({ projectId, commit, fullName, session }: Session
             }
             return current
           })
+          closeLinkSelector()
         }}
       />
 
-      <BlueskyShareDialog open={blueskyDialogOpen} onOpenChange={setBlueskyDialogOpen} title={title} blocks={blocks} projectFullName={fullName} />
+      <BlueskyShareDialog open={blueskyDialogOpen} onOpenChange={closeBlueskyDialog} title={title} blocks={blocks} projectFullName={fullName} />
     </SessionProvider>
   )
 }
