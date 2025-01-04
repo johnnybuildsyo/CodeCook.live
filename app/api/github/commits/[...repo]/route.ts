@@ -22,7 +22,7 @@ interface GitHubCommit {
 
 export async function GET(
   request: NextRequest,
-  context: { params: { repo: string[] } }
+  { params }: { params: { repo: string[] } }
 ) {
   const supabase = await createClient();
   const {
@@ -33,7 +33,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { repo } = context.params;
+  const { repo } = params;
   const [owner, repository, action, ...rest] = repo;
   const fullName = `${owner}/${repository}`;
   const { searchParams } = new URL(request.url);
