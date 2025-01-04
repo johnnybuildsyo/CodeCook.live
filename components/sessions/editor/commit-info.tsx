@@ -57,7 +57,7 @@ export function CommitInfo({ commit, files, fullName, listenForCommits, onListen
                 <div>{commit.message}</div>
               </>
             ) : (
-              <LoadingAnimation className="text-sm font-mono">{listenForCommits ? "Listening for commits..." : "Commit listening paused"}</LoadingAnimation>
+              <LoadingAnimation className="text-sm font-mono">{listenForCommits ? "Listening for commits" : "Commit listening paused"}</LoadingAnimation>
             )}
           </div>
           {commit.sha && fileArray.length > 0 && (

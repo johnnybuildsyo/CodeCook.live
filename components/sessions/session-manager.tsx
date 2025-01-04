@@ -103,34 +103,55 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     }
 
     if (commit.sha) {
+      console.log("Has commit SHA, fetching diff...")
       fetchDiff()
     } else if (listenForCommits) {
-      console.log("Starting commit polling for repo:", fullName)
-      // Set the listen start time when we begin polling
-      setListenStartTime(new Date().toISOString())
+      const startTime = new Date().toISOString()
+      console.log("Starting commit polling at:", startTime)
+      console.log("Repo:", fullName)
+      setListenStartTime(startTime)
 
-      const pollInterval = setInterval(async () => {
+      // Initial check
+      const checkForCommits = async () => {
         try {
-          console.log("Polling for new commits...")
-          const response = await fetch(`/api/github/commits/latest?repo=${encodeURIComponent(fullName)}&since=${listenStartTime}`)
+          console.log("Checking for new commits since:", startTime)
+          const response = await fetch(`/api/github/commits/latest?repo=${encodeURIComponent(fullName)}&since=${startTime}`)
           const data = await response.json()
-          console.log("Poll response:", data)
+          console.log("Poll response data:", data)
 
           if (data?.commit?.sha && data.commit.sha !== commit.sha) {
-            console.log("New commit found:", data.commit)
+            console.log("New commit detected:", {
+              sha: data.commit.sha,
+              message: data.commit.message,
+              currentSha: commit.sha,
+            })
             setCommit({
               sha: data.commit.sha,
               message: data.commit.message,
               author_name: data.commit.author.name,
               authored_at: data.commit.author.date,
             })
+          } else {
+            console.log("No new commits found")
           }
         } catch (error) {
           console.error("Error polling for commits:", error)
         }
-      }, 20000)
+      }
 
-      return () => clearInterval(pollInterval)
+      // Run initial check
+      checkForCommits()
+
+      // Set up interval
+      const pollInterval = setInterval(checkForCommits, 20000)
+      console.log("Polling interval set up")
+
+      return () => {
+        console.log("Cleaning up polling interval")
+        clearInterval(pollInterval)
+      }
+    } else {
+      console.log("Not listening for commits")
     }
   }, [commit.sha, fullName, listenForCommits])
 
@@ -155,6 +176,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   }, [onUnmount])
 
   const handleRemoveCommit = () => {
+    console.log("Removing commit and starting to listen")
     setCommit({
       sha: "",
       message: "",
@@ -162,7 +184,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
       authored_at: "",
     })
     setFiles([])
-    setListenStartTime(new Date().toISOString())
+    setListenForCommits(true)
   }
 
   return (
