@@ -13,14 +13,15 @@ interface SessionViewProps {
   fullName: string
 }
 
-export function SessionView({ session, fullName }: SessionViewProps) {
+export function SessionView({ session: initialSession, fullName }: SessionViewProps) {
   const { theme } = useTheme()
-  const [isLive, setIsLive] = useState(session.is_live)
+  const [isLive, setIsLive] = useState(initialSession.is_live)
+  const [session, setSession] = useState(initialSession)
 
   useEffect(() => {
     const supabase = createClient()
 
-    console.log("Setting up realtime subscription for session:", session.id, "Current is_live:", session.is_live)
+    console.log("Setting up realtime subscription for session:", session.id)
 
     // Subscribe to changes
     const channel = supabase
@@ -33,9 +34,23 @@ export function SessionView({ session, fullName }: SessionViewProps) {
           table: "sessions",
           filter: `id=eq.${session.id}`,
         },
-        (payload: { new: { is_live: boolean | null } }) => {
+        async (payload) => {
           console.log("Received realtime update:", payload)
           setIsLive(payload.new.is_live)
+
+          // Fetch latest session data to get updated blocks
+          const { data: updatedSession } = await supabase.from("sessions").select("*").eq("id", session.id).single()
+
+          if (updatedSession) {
+            console.log("Updated session data:", updatedSession)
+            // Parse blocks if they're stored as a string
+            const blocks = typeof updatedSession.blocks === "string" ? JSON.parse(updatedSession.blocks) : updatedSession.blocks
+
+            setSession({
+              ...updatedSession,
+              blocks: blocks || [],
+            })
+          }
         }
       )
       .subscribe((status) => {
