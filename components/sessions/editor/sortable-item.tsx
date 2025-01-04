@@ -1,10 +1,10 @@
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { GripVertical } from "lucide-react"
-import { SessionBlock } from "@/lib/types/session"
+import { Block } from "@/lib/types/session"
 
 interface SortableItemProps {
-  block: SessionBlock
+  block: Block
   children: React.ReactNode
 }
 

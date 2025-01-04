@@ -1,9 +1,9 @@
-import { SessionBlock } from "@/lib/types/session"
+import { Block } from "@/lib/types/session"
 
 export function generateBlockPrompt(params: {
-  block: SessionBlock
+  block: Block
   title: string
-  blocks: SessionBlock[]
+  blocks: Block[]
   codeChanges: string
 }) {
   const { block, title, blocks, codeChanges } = params

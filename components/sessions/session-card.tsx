@@ -5,9 +5,10 @@ import { cn } from "@/lib/utils"
 import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
 import { Block, Session } from "@/lib/types/session"
-import { BoltIcon, ArchiveBoxIcon } from "@heroicons/react/24/solid"
+import { BoltIcon } from "@heroicons/react/24/solid"
 import { createClient } from "@/lib/supabase/client"
 import { useState } from "react"
+import { Archive } from "lucide-react"
 
 interface SessionCardProps {
   session: Session
@@ -69,7 +70,7 @@ export function SessionCard({ session, username, projectId, featured = false, cu
               </Link>
             </Button>
             <Button variant="outline" size="sm" onClick={handleArchive} disabled={isArchiving}>
-              <ArchiveBoxIcon className="h-3 w-3" />
+              <Archive className="h-3 w-3" />
               {isArchiving ? "Archiving..." : "Archive"}
             </Button>
           </>
