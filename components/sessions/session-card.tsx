@@ -10,6 +10,17 @@ import { createClient } from "@/lib/supabase/client"
 import { useState } from "react"
 import { X } from "lucide-react"
 import { LoadingAnimation } from "../ui/loading-animation"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface SessionCardProps {
   session: Session
@@ -73,9 +84,23 @@ export function SessionCard({ session, username, projectId, featured = false, cu
             {isArchiving ? (
               <LoadingAnimation>Archiving</LoadingAnimation>
             ) : (
-              <Button className="px-2" title="Archive Session" aria-label="Archive Session" variant="ghost" size="sm" onClick={handleArchive} disabled={isArchiving}>
-                <X className="h-3 w-3 opacity-50" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button className="px-2" title="Archive Session" aria-label="Archive Session" variant="ghost" size="sm">
+                    <X className="h-3 w-3 opacity-50" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Archive Session</AlertDialogTitle>
+                    <AlertDialogDescription>Are you sure you want to archive this session? This action cannot be undone.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleArchive}>Archive</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </>
         )}
