@@ -49,12 +49,12 @@ export function CommitInfo({ commit, files, fullName, listenForCommits, onListen
                     href={`https://github.com/${fullName}/commit/${commit.sha}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-foreground/70 hover:text-foreground font-mono text-sm underline"
+                    className="text-foreground/70 hover:text-foreground font-mono text-xs hover:underline"
                   >
                     {commit.sha.slice(0, 7)}
                   </a>
                 </div>
-                <div className="text-sm line-clamp-1">{commit.message}</div>
+                <div className="text-sm line-clamp-1 font-extralight">{commit.message}</div>
               </>
             ) : (
               <LoadingAnimation className="text-sm font-mono">{listenForCommits ? "Listening for commits" : "Commit listening paused"}</LoadingAnimation>
