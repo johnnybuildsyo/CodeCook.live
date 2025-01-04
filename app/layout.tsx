@@ -9,8 +9,8 @@ const displayFont = Rethink_Sans({
   display: "swap",
 })
 
-const SHARE_IMAGE = "https://codecook.live/screenshot.png"
-const APP_ICON = "https://codecook.live/icon.png"
+const SHARE_IMAGE = "https://codecook.live/images/screenshot.png"
+const APP_ICON = "https://codecook.live/images/icon.png"
 
 export const metadata = {
   title: "CodeCook.live",
