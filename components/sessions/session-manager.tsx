@@ -5,7 +5,6 @@ import { useTheme } from "next-themes"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { SortableItem } from "./editor/sortable-item"
-import { AIConnect } from "./editor/ai-connect"
 import { SessionPreview } from "./editor/session-preview"
 import { SessionProvider } from "./editor/session-context"
 import { CommitInfo } from "./editor/commit-info"
@@ -54,7 +53,6 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [title, setTitle] = useState(session?.title || "")
   const [files, setFiles] = useState<FileChange[]>([])
   const [view, setView] = useState<"edit" | "preview">("edit")
-  const [aiEnabled] = useState(true)
   const [initialBlocks] = useState(session?.blocks)
   const [commit, setCommit] = useState(initialCommit)
   const [listenForCommits, setListenForCommits] = useState(!initialCommit.sha)
@@ -202,10 +200,9 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
 
   return (
     <SessionProvider>
-      <div className="w-full flex gap-4 justify-between items-center px-8 pb-4 border-b">
+      <div className="w-full flex gap-4 justify-between items-center xl:px-8 pb-4 xl:border-b">
         <div className="flex items-center gap-2">
           <h3 className="text-2xl font-bold mr-2">Live Session</h3>
-          <AIConnect enabled={aiEnabled} />
           <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
           <Button className="bg-blue-500/90 hover:bg-blue-500 text-white" onClick={handleCopyShareLink}>
             <Share2 className={cn("h-4 w-4 mr-1", isCopied && "mr-2")} />
