@@ -8,7 +8,8 @@ import { Block, Session } from "@/lib/types/session"
 import { BoltIcon } from "@heroicons/react/24/solid"
 import { createClient } from "@/lib/supabase/client"
 import { useState } from "react"
-import { Archive } from "lucide-react"
+import { X } from "lucide-react"
+import { LoadingAnimation } from "../ui/loading-animation"
 
 interface SessionCardProps {
   session: Session
@@ -69,10 +70,13 @@ export function SessionCard({ session, username, projectId, featured = false, cu
                 Renew Session
               </Link>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleArchive} disabled={isArchiving}>
-              <Archive className="h-3 w-3" />
-              {isArchiving ? "Archiving..." : "Archive"}
-            </Button>
+            {isArchiving ? (
+              <LoadingAnimation>Archiving</LoadingAnimation>
+            ) : (
+              <Button className="px-2" title="Archive Session" aria-label="Archive Session" variant="ghost" size="sm" onClick={handleArchive} disabled={isArchiving}>
+                <X className="h-3 w-3 opacity-50" />
+              </Button>
+            )}
           </>
         )}
       </div>
