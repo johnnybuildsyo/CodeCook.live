@@ -12,7 +12,7 @@ export function GitHubAuthGate({ children }: { children?: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[320px] gap-4 bg-foreground/5 p-4 rounded-lg">
       <div className="text-muted-foreground">{children || "Please sign in with GitHub to continue"}</div>
-      {isLoading && <LoadingAnimation />}
+      {isLoading && <LoadingAnimation>Connecting</LoadingAnimation>}
       <Button
         onClick={async () => {
           setIsLoading(true)

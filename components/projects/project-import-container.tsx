@@ -3,10 +3,10 @@
 import { ProjectImport } from "./project-import"
 import { useState, useEffect } from "react"
 import type { GithubRepo } from "@/types/github"
-import { createClient } from "@/lib/supabase/client"
 import { LoadingAnimation } from "../ui/loading-animation"
 import { createProject } from "@/app/actions/create-project"
 import { GitHubAuthGate } from "@/components/auth/github-auth-gate"
+import { fetchGitHubApi } from "@/lib/github/api"
 
 interface ProjectImportContainerProps {
   username: string
@@ -34,25 +34,11 @@ export function ProjectImportContainer({ username, className, existingProjects, 
 
   useEffect(() => {
     async function fetchRepos() {
-      const supabase = createClient()
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (!session?.provider_token) {
-        setError("GitHub access token not found")
-        setIsLoading(false)
-        return
-      }
+      setIsLoading(true)
+      setError("")
 
       try {
-        const response = await fetch("https://api.github.com/user/repos?sort=updated&per_page=100", {
-          headers: {
-            Authorization: `Bearer ${session.provider_token}`,
-            Accept: "application/vnd.github.v3+json",
-          },
-        })
-
+        const response = await fetchGitHubApi("https://api.github.com/user/repos?sort=updated&per_page=100")
         if (!response.ok) throw new Error("Failed to fetch repositories")
 
         const data = await response.json()
