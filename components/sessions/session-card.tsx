@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils"
 import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
 import { Block, Session } from "@/lib/types/session"
-import { BoltIcon } from "@heroicons/react/24/solid"
+import { BoltIcon, ArchiveBoxIcon } from "@heroicons/react/24/solid"
+import { createClient } from "@/lib/supabase/client"
+import { useState } from "react"
 
 interface SessionCardProps {
   session: Session
@@ -18,12 +20,24 @@ interface SessionCardProps {
 }
 
 export function SessionCard({ session, username, projectId, featured = false, currentUser }: SessionCardProps) {
+  const [isArchiving, setIsArchiving] = useState(false)
   const sessionUrl = `/${username}/${projectId}/session/${session.id}`
   const startSessionUrl = `${sessionUrl}/live`
   const introSection = session.blocks.find((section: Block) => section.type === "markdown" && section.role === "intro")
   const introContent = introSection?.content || ""
   const previewContent = introContent.split("\n")[0] || "No preview available"
   const isAuthor = currentUser?.id === session.user_id
+
+  const handleArchive = async () => {
+    setIsArchiving(true)
+    const supabase = createClient()
+    await supabase.from("sessions").update({ is_archived: true }).eq("id", session.id)
+    setIsArchiving(false)
+  }
+
+  if (session.is_archived === true) {
+    return null
+  }
 
   return (
     <div className={cn("border-t py-4 lg:pr-8 grid grid-cols-1 lg:grid-cols-3 gap-4")}>
@@ -47,12 +61,18 @@ export function SessionCard({ session, username, projectId, featured = false, cu
           </Link>
         </Button>
         {isAuthor && (
-          <Button className="bg-blue-500 text-white hover:bg-blue-600" asChild size="sm">
-            <Link href={startSessionUrl}>
-              <BoltIcon className="h-3 w-3" />
-              Renew Session
-            </Link>
-          </Button>
+          <>
+            <Button className="bg-blue-500 text-white hover:bg-blue-600" asChild size="sm">
+              <Link href={startSessionUrl}>
+                <BoltIcon className="h-3 w-3" />
+                Renew Session
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleArchive} disabled={isArchiving}>
+              <ArchiveBoxIcon className="h-3 w-3" />
+              {isArchiving ? "Archiving..." : "Archive"}
+            </Button>
+          </>
         )}
       </div>
     </div>

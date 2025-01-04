@@ -9,9 +9,21 @@ const displayFont = Rethink_Sans({
   display: "swap",
 })
 
+const SHARE_IMAGE = "https://codecook.live/screenshot.png"
+const APP_ICON = "https://codecook.live/icon.png"
+
 export const metadata = {
   title: "CodeCook.live",
   description: "The publishing platform for live coding that turns your commits into live code cooking sessions",
+  openGraph: {
+    images: SHARE_IMAGE,
+  },
+  twitter: {
+    images: SHARE_IMAGE,
+  },
+  icons: {
+    icon: APP_ICON,
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
