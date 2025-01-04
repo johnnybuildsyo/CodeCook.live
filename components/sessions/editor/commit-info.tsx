@@ -4,7 +4,7 @@ import { LoadingAnimation } from "@/components/ui/loading-animation"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { X } from "lucide-react"
+import { File, X } from "lucide-react"
 
 interface CommitInfoProps {
   commit: {
@@ -54,7 +54,7 @@ export function CommitInfo({ commit, files, fullName, listenForCommits, onListen
                     {commit.sha.slice(0, 7)}
                   </a>
                 </div>
-                <div>{commit.message}</div>
+                <div className="text-sm line-clamp-1">{commit.message}</div>
               </>
             ) : (
               <LoadingAnimation className="text-sm font-mono">{listenForCommits ? "Listening for commits" : "Commit listening paused"}</LoadingAnimation>
@@ -62,9 +62,20 @@ export function CommitInfo({ commit, files, fullName, listenForCommits, onListen
           </div>
           {commit.sha && fileArray.length > 0 && (
             <div className="flex items-center gap-2 text-xs font-mono">
-              <div>{fileArray.length} files</div>
-              <button className="px-1 py-1 h-auto text-foreground/70 hover:text-foreground" onClick={() => setShowFiles(!showFiles)}>
-                {showFiles ? <>[-] hide files</> : <>[+] show files</>}
+              <div className="flex items-center gap-1">
+                <File className="h-3 w-3" />
+                {fileArray.length}
+              </div>
+              <button className="pl-1 py-1 h-auto text-foreground/70 hover:text-foreground" onClick={() => setShowFiles(!showFiles)}>
+                {showFiles ? (
+                  <>
+                    <span className="mr-0.5">[-]</span>hide
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-0.5">[-]</span>show
+                  </>
+                )}
               </button>
             </div>
           )}
