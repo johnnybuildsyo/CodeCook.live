@@ -28,6 +28,10 @@ import { useDialogManager } from "@/hooks/use-dialog-manager"
 import { useBlockManager } from "@/hooks/use-block-manager"
 import { useFileSelector } from "@/hooks/use-file-selector"
 import { BlockRenderer } from "./editor/block-renderer"
+import { Button } from "@/components/ui/button"
+import { Share2 } from "lucide-react"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 interface SessionManagerProps {
   projectId: string
@@ -55,6 +59,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [commit, setCommit] = useState(initialCommit)
   const [listenForCommits, setListenForCommits] = useState(!initialCommit.sha)
   const [listenStartTime, setListenStartTime] = useState<string | null>(null)
+  const [isCopied, setIsCopied] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -187,14 +192,30 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     setListenForCommits(true)
   }
 
+  const handleCopyShareLink = () => {
+    const url = `${window.location.origin}/${username}/${projectSlug}/session/${session.id}`
+    navigator.clipboard.writeText(url)
+    toast.success("Share link copied to clipboard")
+    setIsCopied(true)
+    setTimeout(() => setIsCopied(false), 2000)
+  }
+
   return (
     <SessionProvider>
       <div className="w-full flex gap-4 justify-between items-center px-8 pb-4 border-b">
-        <h3 className="text-2xl font-bold">Live Session</h3>
-        <AIConnect enabled={aiEnabled} />
-        <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
-        <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
-        <EndSessionButton username={username} projectSlug={projectSlug} sessionId={session.id} />
+        <div className="flex items-center gap-2">
+          <h3 className="text-2xl font-bold mr-2">Live Session</h3>
+          <AIConnect enabled={aiEnabled} />
+          <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
+          <Button className="bg-blue-500/90 hover:bg-blue-500 text-white" onClick={handleCopyShareLink}>
+            <Share2 className={cn("h-4 w-4 mr-1", isCopied && "mr-2")} />
+            {isCopied ? "Copied" : "Share Link"}
+          </Button>
+        </div>
+        <div className="flex items-center gap-4">
+          <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
+          <EndSessionButton username={username} projectSlug={projectSlug} sessionId={session.id} />
+        </div>
       </div>
       <div className="space-y-4 2xl:grid 2xl:grid-cols-2">
         <div className="2xl:p-8 space-y-4 2xl:h-screen 2xl:overflow-y-auto">
