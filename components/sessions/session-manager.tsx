@@ -31,6 +31,11 @@ import { Button } from "@/components/ui/button"
 import { Share2 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { ChatWindow } from "./chat/chat-window"
+import { MessageCircle } from "lucide-react"
 
 interface SessionManagerProps {
   projectId: string
@@ -58,6 +63,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [listenForCommits, setListenForCommits] = useState(!initialCommit.sha)
   const [listenStartTime, setListenStartTime] = useState<string | null>(null)
   const [isCopied, setIsCopied] = useState(false)
+  const [isChatEnabled, setIsChatEnabled] = useState(session?.chat_enabled ?? false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -198,6 +204,52 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     setTimeout(() => setIsCopied(false), 2000)
   }
 
+  const handleToggleChat = async () => {
+    const supabase = createClient()
+    const newChatEnabled = !isChatEnabled
+    console.log("Toggling chat:", { newChatEnabled })
+
+    const { error } = await supabase.from("sessions").update({ chat_enabled: newChatEnabled }).eq("id", session.id)
+
+    if (error) {
+      console.error("Failed to toggle chat:", error)
+      toast.error("Failed to toggle chat")
+      return
+    }
+
+    setIsChatEnabled(newChatEnabled)
+    toast.success(newChatEnabled ? "Chat enabled" : "Chat disabled")
+  }
+
+  // Sync chat state with database
+  useEffect(() => {
+    const supabase = createClient()
+
+    const channel = supabase
+      .channel(`session-${session.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "sessions",
+          filter: `id=eq.${session.id}`,
+        },
+        (payload) => {
+          console.log("Session update:", payload)
+          setIsChatEnabled(payload.new.chat_enabled)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [session.id])
+
+  // Add console log for render
+  console.log("Rendering SessionManager:", { isChatEnabled, sessionChatEnabled: session?.chat_enabled })
+
   return (
     <SessionProvider>
       <div className="w-full flex gap-4 justify-between items-center xl:px-8 pb-4 xl:border-b">
@@ -208,60 +260,81 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
             <Share2 className={cn("h-4 w-4 mr-1", isCopied && "mr-2")} />
             {isCopied ? "Copied" : "Share Link"}
           </Button>
+          <div className="flex items-center gap-2 ml-2">
+            <Switch checked={isChatEnabled} onCheckedChange={handleToggleChat} className="data-[state=checked]:bg-green-500" />
+            <Label className="text-sm flex items-center gap-1.5">
+              <MessageCircle className="h-4 w-4" />
+              Chat
+            </Label>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
           <EndSessionButton username={username} projectSlug={projectSlug} sessionId={session.id} />
         </div>
       </div>
-      <div className="space-y-4 2xl:grid 2xl:grid-cols-2">
-        <div className="2xl:p-8 space-y-4 2xl:h-screen 2xl:overflow-y-auto">
-          {sessionIdeas.length > 0 && <SessionIdeas ideas={sessionIdeas} onClose={clearIdeas} />}
+      <div className="relative">
+        <div className="space-y-4 2xl:grid 2xl:grid-cols-2">
+          <div className="2xl:p-8 space-y-4 2xl:h-screen 2xl:overflow-y-auto">
+            {sessionIdeas.length > 0 && <SessionIdeas ideas={sessionIdeas} onClose={clearIdeas} />}
 
-          <CommitInfo commit={commit} files={files} fullName={fullName} listenForCommits={listenForCommits} onListenChange={setListenForCommits} onRemoveCommit={handleRemoveCommit} />
+            <CommitInfo commit={commit} files={files} fullName={fullName} listenForCommits={listenForCommits} onListenChange={setListenForCommits} onRemoveCommit={handleRemoveCommit} />
 
-          <SessionHeader title={title} onTitleChange={setTitle} onGenerateIdeas={() => generateIdeas(codeChanges)} view={view} onViewChange={(v) => setView(v as "edit" | "preview")} />
+            <SessionHeader title={title} onTitleChange={setTitle} onGenerateIdeas={() => generateIdeas(codeChanges)} view={view} onViewChange={(v) => setView(v as "edit" | "preview")} />
 
-          {view === "edit" ? (
-            <>
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={blocks} strategy={verticalListSortingStrategy}>
-                  {blocks.map((block) => (
-                    <SortableItem key={block.id} block={block}>
-                      <BlockRenderer
-                        block={block}
-                        theme={theme}
-                        onRemoveBlock={removeBlock}
-                        onGenerateMarkdown={generateMarkdownBlock}
-                        onAddNewBlock={addNewBlock}
-                        onUpdateContent={updateBlockContent}
-                        onUpdateCollapsed={updateBlockCollapsed}
-                        onUpdateFile={updateBlockFile}
-                        onUploadImage={uploadImage}
-                        onOpenDiffDialog={openDiffDialog}
-                        onOpenLinkSelector={openLinkSelector}
-                        fullName={fullName}
-                      />
-                    </SortableItem>
+            {view === "edit" ? (
+              <>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={blocks} strategy={verticalListSortingStrategy}>
+                    {blocks.map((block) => (
+                      <SortableItem key={block.id} block={block}>
+                        <BlockRenderer
+                          block={block}
+                          theme={theme}
+                          onRemoveBlock={removeBlock}
+                          onGenerateMarkdown={generateMarkdownBlock}
+                          onAddNewBlock={addNewBlock}
+                          onUpdateContent={updateBlockContent}
+                          onUpdateCollapsed={updateBlockCollapsed}
+                          onUpdateFile={updateBlockFile}
+                          onUploadImage={uploadImage}
+                          onOpenDiffDialog={openDiffDialog}
+                          onOpenLinkSelector={openLinkSelector}
+                          fullName={fullName}
+                        />
+                      </SortableItem>
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              </>
+            ) : (
+              <div className="prose dark:prose-invert max-w-none">
+                {blocks
+                  .filter((s) => s.type === "markdown")
+                  .map((block) => (
+                    <div key={block.id} className="not-prose">
+                      {block.content}
+                    </div>
                   ))}
-                </SortableContext>
-              </DndContext>
-            </>
-          ) : (
-            <div className="prose dark:prose-invert max-w-none">
-              {blocks
-                .filter((s) => s.type === "markdown")
-                .map((block) => (
-                  <div key={block.id} className="not-prose">
-                    {block.content}
-                  </div>
-                ))}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+          <div className="hidden 2xl:block px-8 2xl:h-screen overflow-y-auto !mt-0">
+            <SessionPreview title={title} blocks={blocks} theme={theme} fullName={fullName} commit={commit} />
+          </div>
         </div>
-        <div className="hidden 2xl:block px-8 2xl:h-screen overflow-y-auto !mt-0">
-          <SessionPreview title={title} blocks={blocks} theme={theme} fullName={fullName} commit={commit} />
-        </div>
+
+        {isChatEnabled && (
+          <ChatWindow
+            key="chat-window"
+            sessionId={session.id}
+            onClose={() => {
+              console.log("Chat window close triggered")
+              setIsChatEnabled(false)
+              handleToggleChat()
+            }}
+          />
+        )}
       </div>
 
       <DiffSelector

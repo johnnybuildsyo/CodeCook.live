@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 export type Json =
   | string
   | number
@@ -68,6 +66,51 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_system: boolean | null
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_system?: boolean | null
+          session_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_system?: boolean | null
+          session_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       commits: {
         Row: {
@@ -222,9 +265,11 @@ export type Database = {
         Row: {
           blocks: Json
           bluesky_post_uri: string | null
+          chat_enabled: boolean | null
           commit_shas: string[]
           created_at: string
           id: string
+          is_archived: boolean | null
           is_live: boolean | null
           project_id: string
           title: string
@@ -234,9 +279,11 @@ export type Database = {
         Insert: {
           blocks: Json
           bluesky_post_uri?: string | null
+          chat_enabled?: boolean | null
           commit_shas?: string[]
           created_at?: string
           id?: string
+          is_archived?: boolean | null
           is_live?: boolean | null
           project_id: string
           title: string
@@ -246,9 +293,11 @@ export type Database = {
         Update: {
           blocks?: Json
           bluesky_post_uri?: string | null
+          chat_enabled?: boolean | null
           commit_shas?: string[]
           created_at?: string
           id?: string
+          is_archived?: boolean | null
           is_live?: boolean | null
           project_id?: string
           title?: string

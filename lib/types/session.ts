@@ -25,7 +25,8 @@ export interface Session {
   commit_shas: string[]
   bluesky_post_uri?: string | null
   is_live: boolean | null
-  is_archived?: boolean
+  is_archived: boolean | null
+  chat_enabled: boolean | null
   created_at: string
   updated_at: string
   project_id: string
