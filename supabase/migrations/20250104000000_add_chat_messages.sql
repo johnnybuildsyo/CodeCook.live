@@ -62,7 +62,3 @@ create index chat_messages_created_at_idx on public.chat_messages(created_at);
 
 -- Add comment
 comment on table public.chat_messages is 'Chat messages for live coding sessions';
-
--- Add auth.users relationship
-alter table public.chat_messages add constraint chat_messages_user_id_fkey 
-    foreign key (user_id) references auth.users(id) on delete cascade; 
