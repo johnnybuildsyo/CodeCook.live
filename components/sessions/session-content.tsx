@@ -32,7 +32,7 @@ export function SessionContent({ title, blocks, theme, fullName, showDate, creat
 
       <div className="space-y-8">
         {blocks.map((block) => (
-          <div key={block.id}>
+          <div className="session-block" key={block.id}>
             {block.type === "markdown" && (
               <div className="prose dark:prose-invert">
                 <ReactMarkdown>{block.content || ""}</ReactMarkdown>

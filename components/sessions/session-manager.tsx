@@ -218,7 +218,9 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     }
 
     setIsChatEnabled(newChatEnabled)
-    toast.success(newChatEnabled ? "Chat enabled" : "Chat disabled")
+    if (!newChatEnabled) {
+      toast.success("Chat disabled")
+    }
   }
 
   // Sync chat state with database

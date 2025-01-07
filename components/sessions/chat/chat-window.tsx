@@ -38,7 +38,7 @@ export function ChatWindow({ sessionId, onClose }: ChatWindowProps) {
     // Delay position setting to ensure window dimensions are available
     requestAnimationFrame(() => {
       const x = Math.max(window.innerWidth - 400, 20)
-      const y = Math.max(window.innerHeight - 520, 20)
+      const y = Math.max(window.innerHeight - 640, 20)
       console.log("Setting initial position:", { x, y })
       setPosition({ x, y })
     })
