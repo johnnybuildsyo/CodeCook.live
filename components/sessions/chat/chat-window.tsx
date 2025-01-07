@@ -8,6 +8,8 @@ import { MessageItem } from "./message-item"
 import { MessageInput } from "./message-input"
 import { ChatMessage } from "@/lib/types/chat"
 import { createClient } from "@/lib/supabase/client"
+import { getAuthUser } from "@/lib/actions/auth"
+import { sendChatMessage } from "@/lib/actions/chat"
 
 interface ChatWindowProps {
   sessionId: string
@@ -32,73 +34,103 @@ export function ChatWindow({ sessionId, onClose }: ChatWindowProps) {
 
   // Set initial position after mount
   useEffect(() => {
-    console.log("ChatWindow mount effect")
-    setMounted(true)
+    const initializeChat = async () => {
+      console.log("ChatWindow mount effect")
+      setMounted(true)
 
-    // Delay position setting to ensure window dimensions are available
-    requestAnimationFrame(() => {
-      const x = Math.max(window.innerWidth - 400, 20)
-      const y = Math.max(window.innerHeight - 640, 20)
-      console.log("Setting initial position:", { x, y })
-      setPosition({ x, y })
-    })
-
-    // Get current user
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        console.log("Current user:", user)
-        setCurrentUser({ id: user.id })
-      }
-    })
-
-    // Fetch initial messages
-    fetchMessages()
-
-    // Subscribe to new messages
-    const channel = supabase
-      .channel(`chat-${sessionId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat_messages",
-          filter: `session_id=eq.${sessionId}`,
-        },
-        async (payload) => {
-          console.log("New message received:", payload)
-          // Fetch the complete message with profile data
-          const { data } = await supabase
-            .from("chat_messages")
-            .select(
-              `
-              *,
-              profile:profiles!chat_messages_user_id_fkey (
-                avatar_url
-              )
-            `
-            )
-            .eq("id", payload.new.id)
-            .single()
-
-          if (data) {
-            setMessages((current) => [...current, data as ChatMessage])
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log("Subscription status:", status)
+      // Delay position setting to ensure window dimensions are available
+      requestAnimationFrame(() => {
+        const x = Math.max(window.innerWidth - 400, 20)
+        const y = Math.max(window.innerHeight - 640, 20)
+        console.log("Setting initial position:", { x, y })
+        setPosition({ x, y })
       })
 
-    return () => {
-      supabase.removeChannel(channel)
+      // Get current user using server action
+      console.log("[Admin] Getting authenticated user...")
+      const { user, profile } = await getAuthUser()
+      if (user && profile) {
+        console.log("[Admin] Authenticated user found:", { userId: user.id, profileId: profile.id })
+        setCurrentUser({ id: profile.id })
+      } else {
+        console.log("[Admin] No authenticated user or profile found")
+        setCurrentUser(null)
+      }
+
+      const supabase = createClient()
+
+      // Subscribe to auth state changes
+      const {
+        data: { subscription: authSubscription },
+      } = supabase.auth.onAuthStateChange(async (event) => {
+        console.log("[Admin] Auth state changed:", event)
+        // Re-fetch user using server action on auth changes
+        const { user, profile } = await getAuthUser()
+        if (user && profile) {
+          console.log("[Admin] Authenticated user found after state change:", { userId: user.id, profileId: profile.id })
+          setCurrentUser({ id: profile.id })
+        } else {
+          console.log("[Admin] No authenticated user or profile found after state change")
+          setCurrentUser(null)
+        }
+      })
+
+      // Fetch initial messages
+      fetchMessages()
+
+      // Subscribe to new messages
+      console.log("[Admin] Setting up subscription for session:", sessionId)
+      const channel = supabase
+        .channel(`chat-${sessionId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "chat_messages",
+            filter: `session_id=eq.${sessionId}`,
+          },
+          (payload) => {
+            console.log("[Admin] Realtime event received:", payload)
+            setMessages((current) => [...current, payload.new as ChatMessage])
+            supabase
+              .from("chat_messages")
+              .select(
+                `
+                *,
+                profile:profiles!chat_messages_user_id_fkey (
+                  avatar_url
+                )
+              `
+              )
+              .eq("id", payload.new.id)
+              .single()
+              .then(({ data, error }) => {
+                if (error) {
+                  console.error("[Admin] Error fetching profile data:", error)
+                  return
+                }
+                if (data) {
+                  setMessages((current) => current.map((msg) => (msg.id === data.id ? (data as ChatMessage) : msg)))
+                }
+              })
+          }
+        )
+        .subscribe()
+
+      return () => {
+        console.log("[Admin] Cleaning up subscriptions")
+        supabase.removeChannel(channel)
+        authSubscription?.unsubscribe()
+      }
     }
+
+    initializeChat()
   }, [sessionId])
 
   const fetchMessages = async () => {
     const supabase = createClient()
-    console.log("Fetching messages for session:", sessionId)
+    console.log("[Admin] Fetching messages for session:", sessionId)
 
     const { data, error } = await supabase
       .from("chat_messages")
@@ -114,30 +146,29 @@ export function ChatWindow({ sessionId, onClose }: ChatWindowProps) {
       .order("created_at", { ascending: true })
 
     if (error) {
-      console.error("Error fetching messages:", error)
+      console.error("[Admin] Error fetching messages:", error)
       return
     }
 
-    console.log("Fetched messages:", data)
+    console.log("[Admin] Fetched messages:", data)
     if (data) {
       setMessages(data as ChatMessage[])
     }
   }
 
   const handleSendMessage = async (content: string) => {
-    if (!currentUser) return
+    if (!currentUser) {
+      console.error("[Admin] Cannot send message: No current user")
+      return
+    }
 
-    const supabase = createClient()
-    console.log("Sending message:", { content, sessionId, userId: currentUser.id })
-
-    const { error } = await supabase.from("chat_messages").insert({
-      session_id: sessionId,
-      user_id: currentUser.id,
-      content,
-    })
+    console.log("[Admin] Sending message:", { content, sessionId })
+    const { message, error } = await sendChatMessage(sessionId, content)
 
     if (error) {
-      console.error("Failed to send message:", error)
+      console.error("[Admin] Failed to send message:", error)
+    } else {
+      console.log("[Admin] Message sent successfully:", message)
     }
   }
 

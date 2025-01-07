@@ -6,7 +6,9 @@ import { SessionContent } from "./session-content"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Badge } from "../ui/badge"
-import { Circle } from "lucide-react"
+import { Circle, MessageCircle } from "lucide-react"
+import { Button } from "../ui/button"
+import { ChatWindowReadonly } from "./chat/chat-window-readonly"
 
 interface SessionViewProps {
   session: Session
@@ -17,6 +19,7 @@ export function SessionView({ session: initialSession, fullName }: SessionViewPr
   const { theme } = useTheme()
   const [isLive, setIsLive] = useState(initialSession.is_live)
   const [session, setSession] = useState(initialSession)
+  const [showChat, setShowChat] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -80,13 +83,22 @@ export function SessionView({ session: initialSession, fullName }: SessionViewPr
 
   return (
     <div className="relative">
-      {isLive && (
-        <Badge variant="secondary" className="absolute -top-8 right-0 bg-background ring-1 ring-green-500/50 py-2">
-          <Circle className="h-4 w-4 rounded-full scale-75 text-green-500/50 ring-4 ring-green-500/30 mr-2 fill-green-500/90" />
-          <span className="text-green-500">Live Session in Progress</span>
-        </Badge>
-      )}
+      <div className="flex items-center justify-between mb-8">
+        {isLive && (
+          <Badge variant="secondary" className="bg-background ring-1 ring-green-500/50 py-2">
+            <Circle className="h-4 w-4 rounded-full scale-75 text-green-500/50 ring-4 ring-green-500/30 mr-2 fill-green-500/90" />
+            <span className="text-green-500">Live Session in Progress</span>
+          </Badge>
+        )}
+        {session.chat_enabled && (
+          <Button variant="outline" size="sm" onClick={() => setShowChat(!showChat)} className="gap-2">
+            <MessageCircle className="h-4 w-4" />
+            {showChat ? "Hide Chat" : "Show Chat"}
+          </Button>
+        )}
+      </div>
       <SessionContent title={session.title} blocks={session.blocks} theme={theme} fullName={fullName} showDate={true} created_at={session.created_at} commit_shas={session.commit_shas} />
+      {showChat && session.chat_enabled && <ChatWindowReadonly sessionId={session.id} onClose={() => setShowChat(false)} />}
     </div>
   )
 }
