@@ -15,6 +15,8 @@ export function MessageItem({ message, isCurrentUser }: MessageItemProps) {
   const formattedTime = format(new Date(message.created_at), "h:mm a")
   const avatarUrl = message.profile?.avatar_url
 
+  console.log("MessageItem", { message, isCurrentUser })
+
   return (
     <div className={cn("flex gap-2 mb-4", isCurrentUser ? "flex-row-reverse" : "flex-row")}>
       <Avatar className="h-8 w-8">
