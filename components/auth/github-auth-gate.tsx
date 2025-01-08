@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Github } from "lucide-react"
 import { signInWithGitHub } from "@/components/auth/actions"
-import { LoadingAnimation } from "../ui/loading-animation"
 
 export function GitHubAuthGate({ children }: { children?: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false)
@@ -12,7 +11,6 @@ export function GitHubAuthGate({ children }: { children?: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[320px] gap-4 bg-foreground/5 p-4 rounded-lg">
       <div className="text-muted-foreground">{children || "Please sign in with GitHub to continue"}</div>
-      {isLoading && <LoadingAnimation>Connecting</LoadingAnimation>}
       <Button
         onClick={async () => {
           setIsLoading(true)
@@ -23,10 +21,10 @@ export function GitHubAuthGate({ children }: { children?: React.ReactNode }) {
             setIsLoading(false)
           }
         }}
-        className={isLoading ? "hidden" : ""}
+        disabled={isLoading}
       >
         <Github className="w-4 h-4 mr-2" />
-        Connect GitHub
+        {isLoading ? "Connecting..." : "Connect GitHub"}
       </Button>
     </div>
   )
