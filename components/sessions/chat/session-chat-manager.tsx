@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { MessageCircle } from "lucide-react"
-import { ChatWindow } from "./chat-window"
+import { ChatDrawer } from "./chat-drawer"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
@@ -70,11 +70,10 @@ export function SessionChatManager({ sessionId, initialChatEnabled }: SessionCha
       </div>
 
       {isChatEnabled && (
-        <ChatWindow
-          key="chat-window"
+        <ChatDrawer
           sessionId={sessionId}
           onClose={() => {
-            console.log("Chat window close triggered")
+            console.log("Chat drawer close triggered")
             setIsChatEnabled(false)
             handleToggleChat()
           }}

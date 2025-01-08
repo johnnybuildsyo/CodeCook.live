@@ -28,7 +28,7 @@ export function BlueskyButton({ postUri, onPublish }: BlueskyButtonProps) {
           <SquareArrowOutUpRight className="h-3 w-3 scale-75 opacity-70" />
         </span>
       ) : (
-        "Publish to Bluesky"
+        "Publish"
       )}
     </Button>
   )

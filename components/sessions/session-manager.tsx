@@ -31,7 +31,7 @@ import { Button } from "@/components/ui/button"
 import { Share2 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { SessionChatManager } from "./chat/session-chat-manager"
+import { ChatToggle } from "./chat/chat-toggle"
 
 interface SessionManagerProps {
   projectId: string
@@ -204,12 +204,14 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
       <div className="w-full flex gap-4 justify-between items-center xl:px-8 pb-4 xl:border-b">
         <div className="flex items-center gap-2">
           <h3 className="text-2xl font-bold mr-2">Live Session</h3>
-          <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
           <Button className="bg-blue-500/90 hover:bg-blue-500 text-white" onClick={handleCopyShareLink}>
             <Share2 className={cn("h-4 w-4 mr-1", isCopied && "mr-2")} />
             {isCopied ? "Copied" : "Share Link"}
           </Button>
-          <SessionChatManager sessionId={session.id} initialChatEnabled={session?.chat_enabled ?? false} />
+          <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
+          <div className="pl-4">
+            <ChatToggle sessionId={session.id} initialEnabled={session.chat_enabled ?? false} />
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />

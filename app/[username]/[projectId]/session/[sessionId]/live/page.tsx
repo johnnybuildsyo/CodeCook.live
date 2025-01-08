@@ -3,6 +3,7 @@ import Header from "@/components/layout/header"
 import { SessionManager } from "@/components/sessions/session-manager"
 import { createClient } from "@/lib/supabase/server"
 import { notFound, redirect } from "next/navigation"
+import { ChatDrawer } from "@/components/sessions/chat/chat-drawer"
 
 interface LiveSessionPageProps {
   params: Promise<{
@@ -174,9 +175,14 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto p-8 max-w-4xl 2xl:max-w-none w-full">
-        <SessionManager projectId={project.id} commit={commit} fullName={project.full_name} session={sessionData} />
-      </main>
+      <div className="relative flex">
+        <main className="relative flex-1 flex">
+          <div className="container grow mx-auto px-4 py-8 max-w-4xl 2xl:max-w-none w-full">
+            <SessionManager projectId={project.id} commit={commit} fullName={project.full_name} session={sessionData} />
+          </div>
+          {sessionData.chat_enabled && <ChatDrawer sessionId={sessionData.id} />}
+        </main>
+      </div>
     </div>
   )
 }
