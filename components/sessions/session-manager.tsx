@@ -31,11 +31,7 @@ import { Button } from "@/components/ui/button"
 import { Share2 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { createClient } from "@/lib/supabase/client"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { ChatWindow } from "./chat/chat-window"
-import { MessageCircle } from "lucide-react"
+import { SessionChatManager } from "./chat/session-chat-manager"
 
 interface SessionManagerProps {
   projectId: string
@@ -63,7 +59,6 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [listenForCommits, setListenForCommits] = useState(!initialCommit.sha)
   const [listenStartTime, setListenStartTime] = useState<string | null>(null)
   const [isCopied, setIsCopied] = useState(false)
-  const [isChatEnabled, setIsChatEnabled] = useState(session?.chat_enabled ?? false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -204,54 +199,6 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     setTimeout(() => setIsCopied(false), 2000)
   }
 
-  const handleToggleChat = async () => {
-    const supabase = createClient()
-    const newChatEnabled = !isChatEnabled
-    console.log("Toggling chat:", { newChatEnabled })
-
-    const { error } = await supabase.from("sessions").update({ chat_enabled: newChatEnabled }).eq("id", session.id)
-
-    if (error) {
-      console.error("Failed to toggle chat:", error)
-      toast.error("Failed to toggle chat")
-      return
-    }
-
-    setIsChatEnabled(newChatEnabled)
-    if (!newChatEnabled) {
-      toast.success("Chat disabled")
-    }
-  }
-
-  // Sync chat state with database
-  useEffect(() => {
-    const supabase = createClient()
-
-    const channel = supabase
-      .channel(`session-${session.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "sessions",
-          filter: `id=eq.${session.id}`,
-        },
-        (payload) => {
-          console.log("Session update:", payload)
-          setIsChatEnabled(payload.new.chat_enabled)
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [session.id])
-
-  // Add console log for render
-  console.log("Rendering SessionManager:", { isChatEnabled, sessionChatEnabled: session?.chat_enabled })
-
   return (
     <SessionProvider>
       <div className="w-full flex gap-4 justify-between items-center xl:px-8 pb-4 xl:border-b">
@@ -262,13 +209,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
             <Share2 className={cn("h-4 w-4 mr-1", isCopied && "mr-2")} />
             {isCopied ? "Copied" : "Share Link"}
           </Button>
-          <div className="flex items-center gap-2 ml-2">
-            <Switch checked={isChatEnabled} onCheckedChange={handleToggleChat} className="data-[state=checked]:bg-green-500" />
-            <Label className="text-sm flex items-center gap-1.5">
-              <MessageCircle className="h-4 w-4" />
-              Chat
-            </Label>
-          </div>
+          <SessionChatManager sessionId={session.id} initialChatEnabled={session?.chat_enabled ?? false} />
         </div>
         <div className="flex items-center gap-4">
           <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
@@ -325,18 +266,6 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
             <SessionPreview title={title} blocks={blocks} theme={theme} fullName={fullName} commit={commit} />
           </div>
         </div>
-
-        {isChatEnabled && (
-          <ChatWindow
-            key="chat-window"
-            sessionId={session.id}
-            onClose={() => {
-              console.log("Chat window close triggered")
-              setIsChatEnabled(false)
-              handleToggleChat()
-            }}
-          />
-        )}
       </div>
 
       <DiffSelector
