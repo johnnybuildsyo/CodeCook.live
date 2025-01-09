@@ -2,7 +2,45 @@
 
 import { createServiceClient } from "@/lib/supabase/server"
 import { getAuthUser } from "./auth"
-import { ChatMessage } from "@/lib/types/chat"
+import { ChatMessage } from "../types/chat"
+import { Database } from "../supabase/database.types"
+
+type GuestChatUser = Database["public"]["Tables"]["guest_chat_users"]["Row"]
+
+export async function fetchChatMessages(sessionId: string) {
+  const supabase = await createServiceClient()
+
+  const { data: messages, error } = await supabase
+    .from("chat_messages")
+    .select(
+      `
+      id,
+      content,
+      created_at,
+      user_id,
+      guest_user_id,
+      profile:profiles (
+        id,
+        username,
+        name,
+        avatar_url
+      ),
+      guest_chat_users (
+        id,
+        name
+      )
+    `
+    )
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true })
+
+  if (error) {
+    console.error("Error fetching chat messages:", error)
+    return { messages: null, error }
+  }
+
+  return { messages: messages as ChatMessage[], error: null }
+}
 
 export async function sendChatMessage(sessionId: string, content: string) {
   try {
@@ -42,93 +80,134 @@ export async function sendChatMessage(sessionId: string, content: string) {
       return { error: "Not authorized to send messages in this session" }
     }
 
-    // Insert message using service role client
-    const { data: message, error: insertError } = await supabase
-      .from("chat_messages")
-      .insert({
-        session_id: sessionId,
-        user_id: user.id, // Use auth user ID
-        content,
-      })
-      .select(`
-        *,
-        profile:profiles!inner (
-          avatar_url
-        )
-      `)
-      .single()
+    const { error } = await supabase.from("chat_messages").insert({
+      session_id: sessionId,
+      content,
+      user_id: user.id,
+    })
 
-    if (insertError) {
-      console.error("[Server] Error inserting message:", insertError)
-      return { error: "Failed to send message" }
+    if (error) {
+      console.error("Error sending chat message:", error)
+      return { error }
     }
 
-    return { message }
+    return { error: null }
   } catch (error) {
-    console.error("[Server] Unexpected error:", error)
+    console.error("Error sending chat message:", error)
     return { error: "An unexpected error occurred" }
   }
 }
 
-export async function fetchChatMessages(sessionId: string): Promise<{ messages: ChatMessage[] | null; error: string | null }> {
-  try {
-    console.log("[Server] Fetching messages for session:", sessionId)
-    const supabase = await createServiceClient()
+export async function createGuestChatUser(sessionId: string, name: string, captchaToken: string) {
+  const supabase = await createServiceClient()
 
-    const { data, error } = await supabase
-      .from("chat_messages")
-      .select(`
-        id,
-        session_id,
-        user_id,
-        content,
-        created_at,
-        updated_at,
-        is_system,
-        profile:profiles (
-          id,
-          avatar_url,
-          username,
-          name
-        )
-      `)
-      .eq("session_id", sessionId)
-      .order("created_at", { ascending: true })
+  // First verify the captcha token
+  const captchaResponse = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${captchaToken}`,
+  })
 
-    if (error) {
-      console.error("[Server] Error fetching messages:", error)
-      return { messages: null, error: "Failed to fetch messages" }
-    }
-
-    console.log("[Server] Successfully fetched messages:", data.length)
-    return { messages: data as ChatMessage[], error: null }
-  } catch (error) {
-    console.error("[Server] Unexpected error fetching messages:", error)
-    return { messages: null, error: "An unexpected error occurred" }
+  const captchaData = await captchaResponse.json()
+  if (!captchaData.success) {
+    return { error: "Invalid captcha", guestUser: null }
   }
+
+  // Verify session exists and is live
+  const { data: session, error: sessionError } = await supabase
+    .from("sessions")
+    .select("is_live, chat_enabled")
+    .eq("id", sessionId)
+    .single()
+
+  if (sessionError || !session) {
+    return { error: "Session not found", guestUser: null }
+  }
+
+  if (!session.is_live) {
+    return { error: "Session is not live", guestUser: null }
+  }
+
+  if (!session.chat_enabled) {
+    return { error: "Chat is not enabled for this session", guestUser: null }
+  }
+
+  // Check if name is already taken in this session
+  const { data: existingUser } = await supabase
+    .from("guest_chat_users")
+    .select("id")
+    .eq("session_id", sessionId)
+    .ilike("name", name)
+    .single()
+
+  if (existingUser) {
+    return { error: "Name already taken in this session", guestUser: null }
+  }
+
+  // Create the guest user
+  const { data: guestUser, error } = await supabase
+    .from("guest_chat_users")
+    .insert({
+      session_id: sessionId,
+      name: name.trim(),
+      captcha_verified: true,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error creating guest chat user:", error)
+    return { error: error.message, guestUser: null }
+  }
+
+  return { error: null, guestUser: guestUser as GuestChatUser }
 }
 
-export async function subscribeToChatMessages(sessionId: string) {
-  try {
-    const supabase = await createServiceClient()
-    
-    return supabase
-      .channel(`service_chat:${sessionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `session_id=eq.${sessionId}`,
-        },
-        (payload) => {
-          console.log('[Server] Chat message event:', payload)
-        }
-      )
-      .subscribe()
-  } catch (error) {
-    console.error('[Server] Error subscribing to chat messages:', error)
-    return null
+export async function sendGuestChatMessage(sessionId: string, guestUserId: string, content: string) {
+  const supabase = await createServiceClient()
+
+  // Verify session status
+  const { data: session, error: sessionError } = await supabase
+    .from("sessions")
+    .select("is_live, chat_enabled")
+    .eq("id", sessionId)
+    .single()
+
+  if (sessionError || !session) {
+    return { error: "Session not found" }
   }
+
+  if (!session.is_live) {
+    return { error: "Session is not live" }
+  }
+
+  if (!session.chat_enabled) {
+    return { error: "Chat is not enabled for this session" }
+  }
+
+  // Verify the guest user exists and belongs to this session
+  const { data: guestUser } = await supabase
+    .from("guest_chat_users")
+    .select("id")
+    .eq("id", guestUserId)
+    .eq("session_id", sessionId)
+    .single()
+
+  if (!guestUser) {
+    return { error: "Invalid guest user" }
+  }
+
+  const { error } = await supabase.from("chat_messages").insert({
+    session_id: sessionId,
+    content,
+    guest_user_id: guestUserId,
+    user_id: '00000000-0000-0000-0000-000000000000'
+  })
+
+  if (error) {
+    console.error("Error sending guest chat message:", error)
+    return { error }
+  }
+
+  return { error: null }
 } 

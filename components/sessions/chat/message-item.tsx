@@ -12,6 +12,7 @@ interface MessageItemProps {
 }
 
 export function MessageItem({ message, isCurrentUser }: MessageItemProps) {
+  console.log({ message })
   const formattedTime = format(new Date(message.created_at), "h:mm a")
   const avatarUrl = message.profile?.avatar_url
 

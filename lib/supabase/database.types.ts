@@ -71,6 +71,7 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          guest_user_id: string | null
           id: string
           is_system: boolean | null
           session_id: string
@@ -80,6 +81,7 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string
+          guest_user_id?: string | null
           id?: string
           is_system?: boolean | null
           session_id: string
@@ -89,6 +91,7 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string
+          guest_user_id?: string | null
           id?: string
           is_system?: boolean | null
           session_id?: string
@@ -96,6 +99,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "chat_messages_guest_user_id_fkey"
+            columns: ["guest_user_id"]
+            isOneToOne: false
+            referencedRelation: "guest_chat_users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chat_messages_session_id_fkey"
             columns: ["session_id"]
@@ -160,6 +170,41 @@ export type Database = {
           {
             foreignKeyName: "commits_session_fkey"
             columns: ["session"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_chat_users: {
+        Row: {
+          captcha_verified: boolean
+          created_at: string
+          id: string
+          last_active_at: string
+          name: string
+          session_id: string
+        }
+        Insert: {
+          captcha_verified?: boolean
+          created_at?: string
+          id?: string
+          last_active_at?: string
+          name: string
+          session_id: string
+        }
+        Update: {
+          captcha_verified?: boolean
+          created_at?: string
+          id?: string
+          last_active_at?: string
+          name?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_chat_users_session_id_fkey"
+            columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "sessions"
             referencedColumns: ["id"]
