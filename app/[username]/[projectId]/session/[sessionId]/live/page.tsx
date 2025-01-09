@@ -177,7 +177,7 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
       <Header />
       <div className="relative flex">
         <main className="relative flex-1 flex">
-          <div className="container grow mx-auto px-4 py-8 max-w-4xl 2xl:max-w-none w-full">
+          <div className="grow mx-auto px-12 py-8 max-w-5xl 2xl:max-w-none w-full">
             <SessionManager projectId={project.id} commit={commit} fullName={project.full_name} session={sessionData} />
           </div>
           {sessionData.chat_enabled && <ChatDrawer sessionId={sessionData.id} />}
