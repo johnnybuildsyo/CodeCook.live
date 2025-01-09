@@ -51,7 +51,12 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
     setLinks(
       links.map((link, i) => {
         if (i === index) {
-          return { ...link, [field]: value }
+          const updatedLink = { ...link, [field]: value }
+          if (field === "url") {
+            const cleanUrl = value.replace(/^(https?:\/\/)/, "").replace(/\/$/, "")
+            updatedLink.title = cleanUrl || link.title
+          }
+          return updatedLink
         }
         return link
       })
@@ -104,7 +109,11 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="twitter">Twitter Username</Label>
+        <Label htmlFor="twitter">
+          <span className="font-extrabold scale-105">𝕏</span>
+          <span className="text-muted-foreground font-light"> / </span>
+          <span>Twitter Username</span>
+        </Label>
         <div className="flex items-center">
           <span className="mr-2">@</span>
           <Input id="twitter" value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="username" />
@@ -120,8 +129,8 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
           {links.map((link, index) => (
             <div key={index} className="flex items-center gap-2 group">
               <GripVertical className="h-4 w-4 text-muted-foreground/30" />
-              <Input placeholder="Title" value={link.title} onChange={(e) => updateLink(index, "title", e.target.value)} className="flex-1" />
               <Input placeholder="URL" value={link.url} onChange={(e) => updateLink(index, "url", e.target.value)} className="flex-1" />
+              <Input placeholder="Title" value={link.title} onChange={(e) => updateLink(index, "title", e.target.value)} className="flex-1" />
               <Button type="button" variant="ghost" size="icon" onClick={() => removeLink(index)} className="opacity-0 group-hover:opacity-100">
                 <X className="h-4 w-4" />
               </Button>

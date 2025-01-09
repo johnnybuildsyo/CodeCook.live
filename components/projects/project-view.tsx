@@ -1,6 +1,6 @@
 "use client"
 
-import { User, Star, GitFork, Eye, GitCommit, Calendar, Github, ExternalLink, LinkIcon, Pencil } from "lucide-react"
+import { Star, GitFork, Eye, GitCommit, Calendar, Github, ExternalLink, LinkIcon, Pencil, CornerUpLeft } from "lucide-react"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
@@ -66,8 +66,8 @@ export function ProjectView({ project, stats, sessions, session, username, proje
           )}
           <div className="flex items-center space-x-4 mb-6">
             <Link href={`/${username}`} className="group inline-flex items-center space-x-2 font-mono text-xs border px-2 py-1 rounded-md hover:bg-foreground/5 transition-colors">
-              <User className="h-3 w-3" />
-              <p className="font-medium">{project.profiles.name}</p>
+              <CornerUpLeft className="h-3 w-3" />
+              <p className="font-medium">{project.profiles.name} Projects</p>
             </Link>
             <Link
               href={`https://github.com/${project.full_name}`}

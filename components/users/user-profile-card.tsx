@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Github, Twitter, Pencil, Link as LinkIcon } from "lucide-react"
+import { Github, Pencil, Link as LinkIcon } from "lucide-react"
 import Link from "next/link"
 
 interface UserProfileCardProps {
@@ -49,7 +49,7 @@ export function UserProfileCard({ name, username, avatar, bio, github, twitter, 
             {github && (
               <Button variant="outline" size="sm" asChild>
                 <Link href={`https://github.com/${github}`}>
-                  <Github className="mr-2 h-4 w-4" />
+                  <Github className="mr-1 h-4 w-4" />
                   GitHub
                 </Link>
               </Button>
@@ -57,8 +57,9 @@ export function UserProfileCard({ name, username, avatar, bio, github, twitter, 
             {twitter && (
               <Button variant="outline" size="sm" asChild>
                 <Link href={`https://twitter.com/${twitter}`}>
-                  <Twitter className="mr-2 h-4 w-4" />
-                  Twitter
+                  <span className="font-extrabold scale-105">𝕏</span>
+                  <span className="text-muted-foreground font-light"> / </span>
+                  <span>Twitter</span>
                 </Link>
               </Button>
             )}
