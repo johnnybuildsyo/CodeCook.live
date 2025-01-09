@@ -6,7 +6,7 @@ import { MessageInput } from "./message-input"
 import { ChatMessage } from "@/lib/types/chat"
 import { createClient } from "@/lib/supabase/client"
 import { Badge } from "@/components/ui/badge"
-import { fetchChatMessages, sendChatMessage, sendGuestChatMessage, createGuestChatUser } from "@/lib/actions/chat"
+import { fetchChatMessages, sendChatMessage, sendGuestChatMessage, createGuestChatUser, getExistingGuestUser } from "@/lib/actions/chat"
 import { Button } from "@/components/ui/button"
 import { GuestChatForm } from "./guest-chat-form"
 import { toast } from "sonner"
@@ -42,8 +42,23 @@ export function BaseChat({ sessionId, currentUser, isEnabled }: BaseChatProps) {
 
   // Initialize chat and subscriptions
   useEffect(() => {
-    setMounted(true)
-    fetchMessagesFromDB()
+    const init = async () => {
+      setMounted(true)
+      await fetchMessagesFromDB()
+
+      // Check for existing guest user
+      if (!currentUser) {
+        const { error, guestUser: existingGuest } = await getExistingGuestUser(sessionId)
+        if (!error && existingGuest) {
+          setGuestUser({
+            id: existingGuest.id,
+            name: existingGuest.name,
+          })
+        }
+      }
+    }
+
+    init()
 
     // Use realtime subscription for all users
     const supabase = createClient()
@@ -73,7 +88,7 @@ export function BaseChat({ sessionId, currentUser, isEnabled }: BaseChatProps) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [sessionId])
+  }, [sessionId, currentUser])
 
   if (!mounted) return null
 
