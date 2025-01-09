@@ -17,7 +17,8 @@ export function ChatDrawer({ sessionId }: ChatDrawerProps) {
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null)
   const [isUserReady, setIsUserReady] = useState(false)
   const [isOpen, setIsOpen] = useState(true)
-  const [isEnabled, setIsEnabled] = useState(true)
+  const [isChatEnabled, setIsChatEnabled] = useState(false)
+  const [isLive, setIsLive] = useState(false)
 
   useEffect(() => {
     const initUser = async () => {
@@ -30,11 +31,11 @@ export function ChatDrawer({ sessionId }: ChatDrawerProps) {
 
     initUser()
 
-    // Get initial chat enabled status and subscribe to changes
+    // Get initial session status and subscribe to changes
     const supabase = createClient()
 
     const channel = supabase
-      .channel(`session-${sessionId}-chat-status`)
+      .channel(`session-${sessionId}-status`)
       .on(
         "postgres_changes",
         {
@@ -44,7 +45,8 @@ export function ChatDrawer({ sessionId }: ChatDrawerProps) {
           filter: `id=eq.${sessionId}`,
         },
         (payload) => {
-          setIsEnabled(payload.new.chat_enabled)
+          setIsChatEnabled(payload.new.chat_enabled)
+          setIsLive(payload.new.is_live)
         }
       )
       .subscribe()
@@ -52,12 +54,13 @@ export function ChatDrawer({ sessionId }: ChatDrawerProps) {
     // Get initial status
     supabase
       .from("sessions")
-      .select("chat_enabled")
+      .select("chat_enabled, is_live")
       .eq("id", sessionId)
       .single()
       .then(({ data }) => {
         if (data) {
-          setIsEnabled(data.chat_enabled)
+          setIsChatEnabled(data.chat_enabled)
+          setIsLive(data.is_live)
         }
       })
 
@@ -80,7 +83,7 @@ export function ChatDrawer({ sessionId }: ChatDrawerProps) {
 
         <div className={cn("fixed top-20 right-0 h-[calc(100vh-80px)] w-80 transition-all duration-300 ease-in-out", isOpen ? "translate-x-0" : "translate-x-80")}>
           {isUserReady ? (
-            <BaseChat sessionId={sessionId} currentUser={currentUser} isEnabled={isEnabled} />
+            <BaseChat sessionId={sessionId} currentUser={currentUser} isEnabled={isLive && isChatEnabled} />
           ) : (
             <div className="p-8">
               <LoadingAnimation />

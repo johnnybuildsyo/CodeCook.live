@@ -1,6 +1,6 @@
 "use client"
 import { useRef, useEffect, useState } from "react"
-import { MessageCircle } from "lucide-react"
+import { CircleOff, MessageCircle } from "lucide-react"
 import { MessageItem } from "./message-item"
 import { MessageInput } from "./message-input"
 import { ChatMessage } from "@/lib/types/chat"
@@ -136,21 +136,23 @@ export function BaseChat({ sessionId, currentUser, isEnabled }: BaseChatProps) {
   return (
     <div className="border-l flex flex-col h-full">
       <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full">
           <h3 className="font-semibold flex items-center gap-2">
             <MessageCircle className="h-4 w-4" />
             Chat
           </h3>
           {!isEnabled && (
-            <Badge variant="secondary" className="text-xs">
-              Disabled
-            </Badge>
+            <div className="text-xs text-red-500 flex items-center">
+              <CircleOff className="h-4 w-4 scale-[.66]" /> off
+            </div>
           )}
-          {guestUser && (
-            <Badge variant="outline" className="text-xs">
-              Guest: {guestUser.name}
-            </Badge>
-          )}
+          <div className="grow flex items-center justify-end">
+            {guestUser && (
+              <Badge variant="outline" className="text-xs">
+                Guest: {guestUser.name}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
@@ -189,8 +191,8 @@ export function BaseChat({ sessionId, currentUser, isEnabled }: BaseChatProps) {
       ) : (
         <div className="relative">
           {!isEnabled && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10">
-              <span className="text-sm text-muted-foreground">Chat is currently disabled</span>
+            <div className="absolute inset-0 flex items-center justify-center z-10 border-t bg-muted">
+              <span className="text-sm text-muted-foreground">Chat is currently off</span>
             </div>
           )}
           <MessageInput onSend={handleSendMessage} disabled={!isEnabled || !showMessages} />
