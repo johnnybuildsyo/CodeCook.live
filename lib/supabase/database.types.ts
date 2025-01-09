@@ -76,7 +76,7 @@ export type Database = {
           is_system: boolean | null
           session_id: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           content: string
@@ -86,7 +86,7 @@ export type Database = {
           is_system?: boolean | null
           session_id: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           content?: string
@@ -96,7 +96,7 @@ export type Database = {
           is_system?: boolean | null
           session_id?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -184,6 +184,7 @@ export type Database = {
           last_active_at: string
           name: string
           session_id: string
+          updated_at: string
         }
         Insert: {
           captcha_verified?: boolean
@@ -192,6 +193,7 @@ export type Database = {
           last_active_at?: string
           name: string
           session_id: string
+          updated_at?: string
         }
         Update: {
           captcha_verified?: boolean
@@ -200,6 +202,7 @@ export type Database = {
           last_active_at?: string
           name?: string
           session_id?: string
+          updated_at?: string
         }
         Relationships: [
           {

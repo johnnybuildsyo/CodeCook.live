@@ -22,7 +22,6 @@
     "db:local:new": "supabase migration new",
     "db:local:list": "supabase migration list --local",
     "db:local:status": "supabase status --local",
-    "db:reset": "docker volume rm supabase_db_codethreads || true && pnpm db:stop && pnpm db:start",
     "db:restart": "pnpm db:stop && pnpm db:start",
     "db:clean": "docker volume rm supabase_db_codethreads || true",
     "db:logs": "supabase logs",

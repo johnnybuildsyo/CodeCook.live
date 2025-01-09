@@ -81,7 +81,7 @@ export default async function SessionPage({ params }: SessionPageProps) {
             </div>
           </div>
         </main>
-        {session.chat_enabled && <ChatDrawer sessionId={session.id} isReadOnly />}
+        {session.chat_enabled && <ChatDrawer sessionId={session.id} />}
       </div>
     </div>
   )

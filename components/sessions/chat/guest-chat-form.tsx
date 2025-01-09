@@ -7,7 +7,7 @@ import { useTheme } from "next-themes"
 import { toast } from "sonner"
 
 interface GuestChatFormProps {
-  onJoinAsGuest: (guestName: string) => void
+  onJoinAsGuest: (guestName: string, captchaToken: string) => Promise<void>
   onCancel: () => void
 }
 
@@ -30,8 +30,7 @@ export function GuestChatForm({ onJoinAsGuest, onCancel }: GuestChatFormProps) {
 
     setIsLoading(true)
     try {
-      await onJoinAsGuest(guestName.trim())
-      toast.success(`Welcome to the chat, ${guestName}!`)
+      await onJoinAsGuest(guestName.trim(), recaptchaToken)
     } catch (error) {
       console.error(error)
       toast.error("Something went wrong. Please try again.")

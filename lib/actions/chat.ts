@@ -199,52 +199,82 @@ export async function createGuestChatUser(sessionId: string, name: string, captc
 }
 
 export async function sendGuestChatMessage(sessionId: string, guestUserId: string, content: string) {
-  const supabase = await createServiceClient()
+  try {
+    console.log("Starting sendGuestChatMessage:", { sessionId, guestUserId, content })
+    const supabase = await createServiceClient()
 
-  // Verify session status
-  const { data: session, error: sessionError } = await supabase
-    .from("sessions")
-    .select("is_live, chat_enabled")
-    .eq("id", sessionId)
-    .single()
+    // Verify session status
+    console.log("Checking session status...")
+    const { data: session, error: sessionError } = await supabase
+      .from("sessions")
+      .select("is_live, chat_enabled")
+      .eq("id", sessionId)
+      .single()
 
-  if (sessionError || !session) {
-    return { error: "Session not found" }
+    if (sessionError) {
+      console.error("Error checking session:", sessionError)
+      return { error: "Failed to check session status" }
+    }
+
+    if (!session) {
+      console.error("Session not found:", { sessionId })
+      return { error: "Session not found" }
+    }
+
+    console.log("Session found:", session)
+
+    if (!session.is_live) {
+      return { error: "Session is not live" }
+    }
+
+    if (!session.chat_enabled) {
+      return { error: "Chat is not enabled for this session" }
+    }
+
+    // Verify the guest user exists and belongs to this session
+    console.log("Checking guest user...")
+    const { data: guestUser, error: guestError } = await supabase
+      .from("guest_chat_users")
+      .select("*")
+      .eq("id", guestUserId)
+      .eq("session_id", sessionId)
+      .single()
+
+    if (guestError) {
+      console.error("Error checking guest user:", guestError)
+      return { error: "Failed to verify guest user" }
+    }
+
+    if (!guestUser) {
+      console.error("Guest user not found:", { guestUserId, sessionId })
+      return { error: "Guest user not found" }
+    }
+
+    console.log("Guest user found:", guestUser)
+
+    // Insert the message with null user_id since it's a guest message
+    console.log("Attempting to insert message...")
+    const messageData = {
+      session_id: sessionId,
+      content,
+      guest_user_id: guestUserId,
+      user_id: null // Use null for guest messages - the trigger will handle this
+    }
+    console.log("Message data:", messageData)
+
+    const { error: insertError } = await supabase.from("chat_messages").insert(messageData)
+
+    if (insertError) {
+      console.error("Error sending guest chat message:", insertError)
+      return { error: "Failed to send message" }
+    }
+
+    console.log("Message sent successfully")
+    return { error: null }
+  } catch (error) {
+    console.error("Unexpected error in sendGuestChatMessage:", error)
+    return { error: "An unexpected error occurred" }
   }
-
-  if (!session.is_live) {
-    return { error: "Session is not live" }
-  }
-
-  if (!session.chat_enabled) {
-    return { error: "Chat is not enabled for this session" }
-  }
-
-  // Verify the guest user exists and belongs to this session
-  const { data: guestUser } = await supabase
-    .from("guest_chat_users")
-    .select("id")
-    .eq("id", guestUserId)
-    .eq("session_id", sessionId)
-    .single()
-
-  if (!guestUser) {
-    return { error: "Invalid guest user" }
-  }
-
-  const { error } = await supabase.from("chat_messages").insert({
-    session_id: sessionId,
-    content,
-    guest_user_id: guestUserId,
-    user_id: '00000000-0000-0000-0000-000000000000'
-  })
-
-  if (error) {
-    console.error("Error sending guest chat message:", error)
-    return { error }
-  }
-
-  return { error: null }
 }
 
 export async function getGuestChatUser(sessionId: string, guestUserId: string) {

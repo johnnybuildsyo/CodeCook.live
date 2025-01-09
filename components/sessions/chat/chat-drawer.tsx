@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { BaseChat } from "./base-chat"
 import { getAuthUser } from "@/lib/actions/auth"
-import { sendChatMessage } from "@/lib/actions/chat"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ArrowLeftFromLine, ArrowRightFromLine } from "lucide-react"
@@ -12,10 +11,9 @@ import { LoadingAnimation } from "@/components/ui/loading-animation"
 
 interface ChatDrawerProps {
   sessionId: string
-  isReadOnly?: boolean
 }
 
-export function ChatDrawer({ sessionId, isReadOnly = false }: ChatDrawerProps) {
+export function ChatDrawer({ sessionId }: ChatDrawerProps) {
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null)
   const [isUserReady, setIsUserReady] = useState(false)
   const [isOpen, setIsOpen] = useState(true)
@@ -68,11 +66,6 @@ export function ChatDrawer({ sessionId, isReadOnly = false }: ChatDrawerProps) {
     }
   }, [sessionId])
 
-  const handleSendMessage = async (content: string) => {
-    if (!currentUser || !isEnabled) return
-    await sendChatMessage(sessionId, content)
-  }
-
   return (
     <>
       <div className={cn("flex-shrink-0 relative transition-all duration-300 ease-in-out", isOpen ? "w-80 border-l" : "w-0")}>
@@ -87,7 +80,7 @@ export function ChatDrawer({ sessionId, isReadOnly = false }: ChatDrawerProps) {
 
         <div className={cn("fixed top-20 right-0 h-[calc(100vh-80px)] w-80 transition-all duration-300 ease-in-out", isOpen ? "translate-x-0" : "translate-x-80")}>
           {isUserReady ? (
-            <BaseChat sessionId={sessionId} isReadOnly={isReadOnly} currentUser={currentUser} onSendMessage={!isReadOnly ? handleSendMessage : undefined} isEnabled={isEnabled} />
+            <BaseChat sessionId={sessionId} currentUser={currentUser} isEnabled={isEnabled} />
           ) : (
             <div className="p-8">
               <LoadingAnimation />

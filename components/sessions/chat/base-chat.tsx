@@ -6,25 +6,24 @@ import { MessageInput } from "./message-input"
 import { ChatMessage } from "@/lib/types/chat"
 import { createClient } from "@/lib/supabase/client"
 import { Badge } from "@/components/ui/badge"
-import { fetchChatMessages } from "@/lib/actions/chat"
+import { fetchChatMessages, sendChatMessage, sendGuestChatMessage, createGuestChatUser } from "@/lib/actions/chat"
 import { Button } from "@/components/ui/button"
 import { GuestChatForm } from "./guest-chat-form"
+import { toast } from "sonner"
 
 interface BaseChatProps {
   sessionId: string
-  isReadOnly?: boolean
   currentUser?: { id: string } | null
-  onSendMessage?: (content: string) => Promise<void>
   isEnabled: boolean
 }
 
-export function BaseChat({ sessionId, isReadOnly = false, currentUser, onSendMessage, isEnabled }: BaseChatProps) {
+export function BaseChat({ sessionId, currentUser, isEnabled }: BaseChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isGuestChatFormOpen, setIsGuestChatFormOpen] = useState(false)
-  const [guestName, setGuestName] = useState<string | null>(null)
+  const [guestUser, setGuestUser] = useState<{ id: string; name: string } | null>(null)
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -80,9 +79,43 @@ export function BaseChat({ sessionId, isReadOnly = false, currentUser, onSendMes
 
   const showMessages = !isLoading
 
-  const handleJoinAsGuest = (name: string) => {
-    setGuestName(name)
+  const handleJoinAsGuest = async (name: string, captchaToken: string) => {
+    const { error, guestUser: newGuestUser } = await createGuestChatUser(sessionId, name, captchaToken)
+
+    if (error || !newGuestUser) {
+      throw new Error(error || "Failed to create guest user")
+    }
+
+    setGuestUser({
+      id: newGuestUser.id,
+      name: newGuestUser.name,
+    })
     setIsGuestChatFormOpen(false)
+  }
+
+  const handleSendMessage = async (content: string) => {
+    if (!content.trim()) return
+
+    try {
+      let error
+      if (currentUser) {
+        console.log("Sending message as authenticated user:", { userId: currentUser.id, content })
+        const result = await sendChatMessage(sessionId, content)
+        error = result.error
+      } else if (guestUser) {
+        console.log("Sending message as guest:", { guestUserId: guestUser.id, content })
+        const result = await sendGuestChatMessage(sessionId, guestUser.id, content)
+        error = result.error
+      }
+
+      if (error) {
+        console.error("Error sending message:", error)
+        toast.error("Failed to send message")
+      }
+    } catch (error) {
+      console.error("Unexpected error sending message:", error)
+      toast.error("Failed to send message")
+    }
   }
 
   return (
@@ -98,14 +131,9 @@ export function BaseChat({ sessionId, isReadOnly = false, currentUser, onSendMes
               Disabled
             </Badge>
           )}
-          {isReadOnly && (
+          {guestUser && (
             <Badge variant="outline" className="text-xs">
-              Read Only
-            </Badge>
-          )}
-          {guestName && (
-            <Badge variant="outline" className="text-xs">
-              Guest: {guestName}
+              Guest: {guestUser.name}
             </Badge>
           )}
         </div>
@@ -118,22 +146,21 @@ export function BaseChat({ sessionId, isReadOnly = false, currentUser, onSendMes
           </div>
         ) : (
           <>
-            {showMessages && messages.map((message) => <MessageItem key={message.id} message={message} isCurrentUser={currentUser?.id === message.user_id} />)}
+            {showMessages &&
+              messages.map((message, index) => (
+                <MessageItem
+                  key={message.id}
+                  message={message}
+                  previousMessage={index > 0 ? messages[index - 1] : undefined}
+                  isCurrentUser={currentUser ? currentUser.id === message.user_id : guestUser ? guestUser.id === message.guest_user_id : false}
+                />
+              ))}
             <div ref={messagesEndRef} />
           </>
         )}
       </div>
 
-      {!isReadOnly && onSendMessage ? (
-        <div className="relative">
-          {!isEnabled && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10">
-              <span className="text-sm text-muted-foreground">Chat is currently disabled</span>
-            </div>
-          )}
-          <MessageInput onSend={onSendMessage} disabled={!currentUser || !isEnabled || !showMessages} />
-        </div>
-      ) : (
+      {!currentUser && !guestUser ? (
         <div className="border-t p-4 bg-muted/50">
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-3">Join the live conversation</p>
@@ -143,6 +170,15 @@ export function BaseChat({ sessionId, isReadOnly = false, currentUser, onSendMes
               </Button>
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="relative">
+          {!isEnabled && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10">
+              <span className="text-sm text-muted-foreground">Chat is currently disabled</span>
+            </div>
+          )}
+          <MessageInput onSend={handleSendMessage} disabled={!isEnabled || !showMessages} />
         </div>
       )}
     </div>
