@@ -5,7 +5,6 @@ import { SessionView } from "@/components/sessions/session-view"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
-import { cn } from "@/lib/utils"
 import { ChatDrawer } from "@/components/sessions/chat/chat-drawer"
 
 interface SessionPageProps {
@@ -50,7 +49,7 @@ export default async function SessionPage({ params }: SessionPageProps) {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="relative flex">
-        <main className={cn("flex-1 transition-[margin] duration-200 ease-in-out", session.chat_enabled ? "mr-80" : "mr-0")}>
+        <main className="flex-1 transition-[margin] duration-200 ease-in-out">
           <div className="container mx-auto px-4 py-8 w-full max-w-6xl">
             <Link href={`/${username}/${projectId}`} className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6">
               <ChevronLeft className="h-4 w-4 mr-1" />
