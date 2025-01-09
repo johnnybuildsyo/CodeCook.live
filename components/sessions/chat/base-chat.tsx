@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Badge } from "@/components/ui/badge"
 import { fetchChatMessages } from "@/lib/actions/chat"
 import { Button } from "@/components/ui/button"
-import { GuestChatDialog } from "./guest-chat-dialog"
+import { GuestChatForm } from "./guest-chat-form"
 
 interface BaseChatProps {
   sessionId: string
@@ -23,7 +23,7 @@ export function BaseChat({ sessionId, isReadOnly = false, currentUser, onSendMes
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false)
+  const [isGuestChatFormOpen, setIsGuestChatFormOpen] = useState(false)
   const [guestName, setGuestName] = useState<string | null>(null)
 
   // Scroll to bottom when new messages arrive
@@ -82,8 +82,7 @@ export function BaseChat({ sessionId, isReadOnly = false, currentUser, onSendMes
 
   const handleJoinAsGuest = (name: string) => {
     setGuestName(name)
-    // Here you would typically set up guest chat functionality
-    // For now, we'll just store the name
+    setIsGuestChatFormOpen(false)
   }
 
   return (
@@ -113,8 +112,16 @@ export function BaseChat({ sessionId, isReadOnly = false, currentUser, onSendMes
       </div>
 
       <div className="grow h-full overflow-y-auto p-4">
-        {showMessages && messages.map((message) => <MessageItem key={message.id} message={message} isCurrentUser={currentUser?.id === message.user_id} />)}
-        <div ref={messagesEndRef} />
+        {isGuestChatFormOpen ? (
+          <div className="h-full flex items-center justify-center">
+            <GuestChatForm onJoinAsGuest={handleJoinAsGuest} onCancel={() => setIsGuestChatFormOpen(false)} />
+          </div>
+        ) : (
+          <>
+            {showMessages && messages.map((message) => <MessageItem key={message.id} message={message} isCurrentUser={currentUser?.id === message.user_id} />)}
+            <div ref={messagesEndRef} />
+          </>
+        )}
       </div>
 
       {!isReadOnly && onSendMessage ? (
@@ -131,15 +138,13 @@ export function BaseChat({ sessionId, isReadOnly = false, currentUser, onSendMes
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-3">Join the live conversation</p>
             <div className="flex items-center justify-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setIsGuestDialogOpen(true)}>
+              <Button variant="outline" size="sm" onClick={() => setIsGuestChatFormOpen(true)}>
                 Join as Guest
               </Button>
             </div>
           </div>
         </div>
       )}
-
-      <GuestChatDialog open={isGuestDialogOpen} onOpenChange={setIsGuestDialogOpen} onJoinAsGuest={handleJoinAsGuest} />
     </div>
   )
 }
