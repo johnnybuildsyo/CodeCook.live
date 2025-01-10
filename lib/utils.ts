@@ -19,6 +19,10 @@ export const shouldExcludeFile = (filename: string): boolean => {
   return excludePatterns.some((pattern) => pattern.test(filename))
 }
 
+export function convertImageUrl(url: string): string {
+  return url.replace("codethreads.s3.us-east-2.amazonaws.com", "d22ircbunvt96b.cloudfront.net")
+}
+
 export function getLanguageFromFilename(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase()
   switch (ext) {

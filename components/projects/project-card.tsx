@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarDays } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
-
+import { convertImageUrl } from "@/lib/utils"
 interface ProjectCardProps {
   project: {
     id: string
@@ -22,7 +23,7 @@ export function ProjectCard({ project, username, sessionCount = 0 }: ProjectCard
       <Card className="transition-all hover:shadow-md group-hover:border-primary">
         {project.logo_url && (
           <div className="relative w-full h-48 overflow-hidden rounded-t-lg">
-            <img src={project.logo_url} alt={project.display_name} className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+            <Image src={convertImageUrl(project.logo_url)} alt={project.display_name} className="object-cover w-full h-full transition-transform group-hover:scale-105" />
           </div>
         )}
         <CardHeader>

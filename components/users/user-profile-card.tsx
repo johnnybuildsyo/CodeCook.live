@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { convertImageUrl } from "@/lib/utils"
 import { Github, Pencil, Link as LinkIcon } from "lucide-react"
 import Link from "next/link"
 
@@ -27,7 +28,7 @@ export function UserProfileCard({ name, username, avatar, bio, github, twitter, 
         )}
         <div className="flex items-center space-x-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={avatar || undefined} alt={name || undefined} />
+            <AvatarImage src={avatar ? convertImageUrl(avatar) : undefined} alt={name || undefined} />
             <AvatarFallback>
               {name
                 ?.split(" ")

@@ -1,8 +1,10 @@
 "use client"
 
 import { ChangeEvent, useRef } from "react"
-import { Camera, Edit } from "lucide-react"
+import { Camera, Edit, User } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
+import { convertImageUrl } from "@/lib/utils"
 
 interface AvatarUploadProps {
   currentUrl?: string | null
@@ -47,7 +49,12 @@ export function AvatarUpload({ currentUrl, onUpload, size = "md" }: AvatarUpload
         <Edit className={cn("text-muted-foreground", size === "sm" ? "h-3 w-3" : "h-4 w-4")} />
       </div>
       <div className={cn("group rounded-full overflow-hidden", sizes[size])}>
-        <img src={currentUrl || "https://github.com/identicons/app.png"} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+        {currentUrl ? (
+          <Image fill={true} src={convertImageUrl(currentUrl)} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+        ) : (
+          <User className="w-full h-full rounded-full object-cover" />
+        )}
+
         <button
           type="button"
           className="flex items-center justify-center absolute w-full h-full inset-0 opacity-0 group-hover:opacity-90 bg-background/80 transition-opacity"

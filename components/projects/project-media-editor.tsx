@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { LoadingAnimation } from "../ui/loading-animation"
 import { ImagePlus, X } from "lucide-react"
-
+import Image from "next/image"
+import { convertImageUrl } from "@/lib/utils"
 interface ProjectMediaEditorProps {
   projectId: string
   screenshotUrl: string | null
@@ -112,7 +113,7 @@ export function ProjectMediaEditor({ projectId, screenshotUrl: initialScreenshot
               <div className="font-medium">Screenshot</div>
               {screenshotUrl ? (
                 <div className="relative">
-                  <img src={screenshotUrl} alt="Project screenshot" className="rounded-lg border" />
+                  <Image src={convertImageUrl(screenshotUrl)} alt="Project screenshot" className="rounded-lg border" />
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 bg-background/50 hover:bg-background/80" onClick={() => handleRemoveImage("screenshot")}>
                     <X className="h-4 w-4" />
                   </Button>
@@ -132,7 +133,7 @@ export function ProjectMediaEditor({ projectId, screenshotUrl: initialScreenshot
               <div className="font-medium">Logo</div>
               {logoUrl ? (
                 <div className="relative w-24 h-24">
-                  <img src={logoUrl} alt="Project logo" className="rounded-lg border object-contain w-full h-full" />
+                  <Image src={convertImageUrl(logoUrl)} alt="Project logo" className="rounded-lg border object-contain w-full h-full" />
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 bg-background/50 hover:bg-background/80" onClick={() => handleRemoveImage("logo")}>
                     <X className="h-4 w-4" />
                   </Button>

@@ -1,6 +1,7 @@
 import { Textarea } from "@/components/ui/textarea"
 import { MAX_POST_LENGTH, type ThreadPost } from "@/lib/bluesky/format"
-
+import Image from "next/image"
+import { convertImageUrl } from "@/lib/utils"
 interface ThreadPreviewProps {
   posts: ThreadPost[]
   onPostChange: (index: number, content: string) => void
@@ -21,7 +22,7 @@ export function ThreadPreview({ posts, onPostChange }: ThreadPreviewProps) {
                 <div className="mt-2 flex flex-wrap gap-2">
                   {post.images.map((image, imageIndex) => (
                     <div key={imageIndex} className="relative group">
-                      <img src={image.url} alt={image.alt} className="h-16 w-16 object-cover rounded border" />
+                      <Image src={convertImageUrl(image.url)} alt={image.alt} className="h-16 w-16 object-cover rounded border" />
                       {image.alt && <div className="absolute inset-0 bg-black/75 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition-opacity rounded overflow-hidden">{image.alt}</div>}
                     </div>
                   ))}
