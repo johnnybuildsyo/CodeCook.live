@@ -25,12 +25,13 @@ export function CommitInfo({ commit, files, fullName, listenForCommits, onListen
   const [showFiles, setShowFiles] = useState(false)
   const fileArray = Array.isArray(files) ? files : []
 
-  // Automatically start listening when there's no commit
+  // Automatically start listening when there's no commit (only on initial mount)
   useEffect(() => {
-    if (!commit.sha && !listenForCommits) {
+    const shouldStartListening = !commit.sha && !listenForCommits
+    if (shouldStartListening) {
       onListenChange(true)
     }
-  }, [commit.sha, listenForCommits, onListenChange])
+  }, []) // Empty dependency array for initial mount only
 
   // Handle listen mode changes
   const handleListenChange = (value: boolean) => {

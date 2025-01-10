@@ -130,7 +130,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
 
   return (
     <SessionProvider>
-      <div className="w-full flex gap-4 justify-between items-center 2xl:px-8 pb-4 xl:border-b">
+      <div className="w-full flex gap-4 justify-between items-center 2xl:px-4 pb-4 xl:border-b">
         <div className="flex items-center gap-2">
           <div className="flex flex-col justify-start items-start w-[175px]">
             <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
