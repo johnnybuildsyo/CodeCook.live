@@ -2,15 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
-import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable"
-import { SortableItem } from "./editor/sortable-item"
-import { SessionPreview } from "./editor/session-preview"
+import { KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 import { SessionProvider } from "./editor/session-context"
-import { CommitInfo } from "./editor/commit-info"
 import { DiffSelector } from "./editor/diff-selector"
 import { FileChange } from "@/lib/types/session"
-import { SessionIdeas } from "./editor/session-ideas"
 import type { Session } from "@/lib/types/session"
 import { CommitLinkSelector } from "./editor/commit-link-selector"
 import { BlueskyShareDialog } from "./editor/bluesky-share-dialog"
@@ -18,7 +14,6 @@ import { useParams } from "next/navigation"
 import { SaveStatus } from "./editor/save-status"
 import { BlueskyButton } from "./editor/bluesky-button"
 import { EndSessionButton } from "./editor/end-session-button"
-import { SessionHeader } from "./editor/session-header"
 import { useSessionAutosave } from "@/hooks/use-session-autosave"
 import { useFileReferences } from "@/hooks/use-file-references"
 import { useImageUpload } from "@/hooks/use-image-upload"
@@ -26,13 +21,14 @@ import { useSessionIdeas } from "@/hooks/use-session-ideas"
 import { useDialogManager } from "@/hooks/use-dialog-manager"
 import { useBlockManager } from "@/hooks/use-block-manager"
 import { useFileSelector } from "@/hooks/use-file-selector"
-import { BlockRenderer } from "./editor/block-renderer"
 import { Button } from "@/components/ui/button"
-import { Share2, Sparkles } from "lucide-react"
-import { toast } from "sonner"
+import { Share2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ChatToggle } from "./chat/chat-toggle"
 import { CommitSelectorDialog } from "./editor/commit-selector-dialog"
+import { useCommitPolling } from "../../hooks/use-commit-polling"
+import { useSessionHandlers } from "../../hooks/use-session-handlers"
+import { SessionContent } from "./editor/session-content"
 
 interface SessionManagerProps {
   projectId: string
@@ -58,7 +54,6 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [initialBlocks] = useState(session?.blocks)
   const [commit, setCommit] = useState(initialCommit)
   const [listenForCommits, setListenForCommits] = useState(!initialCommit.sha)
-  const [listenStartTime, setListenStartTime] = useState<string | null>(null)
   const [isCopied, setIsCopied] = useState(false)
   const [commitSelectorOpen, setCommitSelectorOpen] = useState(false)
 
@@ -80,7 +75,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   // Update block manager when code changes update
   useEffect(() => {
     if (codeChanges) {
-      setBlocks((current) => current) // Trigger a re-render with latest codeChanges
+      setBlocks((current) => current)
     }
   }, [codeChanges, setBlocks])
 
@@ -99,57 +94,26 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const { sessionIdeas, generateIdeas, clearIdeas } = useSessionIdeas()
   const { handleDiffSelection, handleLinkSelection, getExistingDiffFiles } = useFileSelector()
 
-  // Update commit polling effect
-  useEffect(() => {
-    async function fetchDiff() {
-      const response = await fetch(`/api/github/commits/${commit.sha}/diff?repo=${encodeURIComponent(fullName)}`)
-      const data = await response.json()
-      setFiles(data)
-    }
+  // Use custom hook for commit polling
+  useCommitPolling({
+    commit,
+    setCommit,
+    fullName,
+    listenForCommits,
+    setFiles,
+  })
 
-    if (commit.sha) {
-      fetchDiff()
-    } else if (listenForCommits) {
-      const startTime = new Date().toISOString()
-      setListenStartTime(startTime)
-
-      // Initial check
-      const checkForCommits = async () => {
-        try {
-          const response = await fetch(`/api/github/commits/latest?repo=${encodeURIComponent(fullName)}&since=${startTime}`)
-          const data = await response.json()
-
-          if (data?.commit?.sha && data.commit.sha !== commit.sha) {
-            setCommit({
-              sha: data.commit.sha,
-              message: data.commit.message,
-              author_name: data.commit.author.name,
-              authored_at: data.commit.author.date,
-            })
-          }
-        } catch (error) {
-          console.error("Error polling for commits:", error)
-        }
-      }
-
-      // Run initial check
-      checkForCommits()
-
-      const pollInterval = setInterval(checkForCommits, 20000)
-
-      return () => {
-        // Clean up polling interval
-        clearInterval(pollInterval)
-      }
-    }
-  }, [commit.sha, fullName, listenForCommits])
-
-  // Handle listen state changes
-  useEffect(() => {
-    if (listenForCommits && !listenStartTime) {
-      setListenStartTime(new Date().toISOString())
-    }
-  }, [listenForCommits, listenStartTime])
+  // Use custom hook for session handlers
+  const { handleRemoveCommit, handleCopyShareLink, handleCommitSelect } = useSessionHandlers({
+    username,
+    projectSlug,
+    session,
+    setCommit,
+    setFiles,
+    setListenForCommits,
+    setIsCopied,
+    setCommitSelectorOpen,
+  })
 
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -163,44 +127,6 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
       onUnmount?.()
     }
   }, [onUnmount])
-
-  const handleRemoveCommit = () => {
-    setCommit({
-      sha: "",
-      message: "",
-      author_name: "",
-      authored_at: "",
-    })
-    setFiles([])
-    setListenForCommits(true)
-  }
-
-  const handleCopyShareLink = () => {
-    const url = `${window.location.origin}/${username}/${projectSlug}/session/${session.id}`
-    navigator.clipboard.writeText(url)
-    toast.success("Share link copied to clipboard")
-    setIsCopied(true)
-    setTimeout(() => setIsCopied(false), 2000)
-  }
-
-  const handleCommitSelect = async (selectedCommit: { sha: string; commit: { message: string; author: { name: string; date: string } } }) => {
-    // First remove the current commit
-    handleRemoveCommit()
-
-    // Then set the new commit
-    setCommit({
-      sha: selectedCommit.sha,
-      message: selectedCommit.commit.message,
-      author_name: selectedCommit.commit.author.name,
-      authored_at: selectedCommit.commit.author.date,
-    })
-    setFiles([])
-    setCommitSelectorOpen(false)
-  }
-
-  const handleFilesChange = (newFiles: FileChange[]) => {
-    setFiles(newFiles)
-  }
 
   return (
     <SessionProvider>
@@ -222,69 +148,36 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
           <EndSessionButton username={username} projectSlug={projectSlug} sessionId={session.id} />
         </div>
       </div>
-      <div className="relative">
-        <div className="space-y-4 2xl:grid 2xl:grid-cols-2">
-          <div className="pt-4 2xl:p-8 2xl:pt-2 space-y-4 2xl:h-screen 2xl:overflow-y-auto relative">
-            {sessionIdeas.length > 0 && <SessionIdeas ideas={sessionIdeas} onClose={clearIdeas} />}
-            <Button className="absolute top-4 right-0 translate-x-4 gap-0" size="sm" variant="outline" onClick={() => generateIdeas(codeChanges)}>
-              <>
-                <Sparkles className="h-4 w-4 mr-2 text-yellow-500" />
-                AI Assist
-              </>
-            </Button>
-            <CommitInfo
-              commit={commit}
-              files={files}
-              fullName={fullName}
-              listenForCommits={listenForCommits}
-              onListenChange={setListenForCommits}
-              onRemoveCommit={handleRemoveCommit}
-              onFilesChange={handleFilesChange}
-              onChooseCommit={() => setCommitSelectorOpen(true)}
-            />
-            <SessionHeader title={title} onTitleChange={setTitle} view={view} onViewChange={(v) => setView(v as "edit" | "preview")} />
-            {view === "edit" ? (
-              <>
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={blocks} strategy={verticalListSortingStrategy}>
-                    {blocks.map((block) => (
-                      <SortableItem key={block.id} block={block}>
-                        <BlockRenderer
-                          block={block}
-                          theme={theme}
-                          onRemoveBlock={removeBlock}
-                          onGenerateMarkdown={generateMarkdownBlock}
-                          onAddNewBlock={addNewBlock}
-                          onUpdateContent={updateBlockContent}
-                          onUpdateCollapsed={updateBlockCollapsed}
-                          onUpdateFile={updateBlockFile}
-                          onUploadImage={uploadImage}
-                          onOpenDiffDialog={openDiffDialog}
-                          onOpenLinkSelector={openLinkSelector}
-                          fullName={fullName}
-                        />
-                      </SortableItem>
-                    ))}
-                  </SortableContext>
-                </DndContext>
-              </>
-            ) : (
-              <div className="prose dark:prose-invert max-w-none">
-                {blocks
-                  .filter((s) => s.type === "markdown")
-                  .map((block) => (
-                    <div key={block.id} className="not-prose">
-                      {block.content}
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-          <div className="hidden 2xl:block px-8 2xl:h-screen overflow-y-auto !mt-0">
-            <SessionPreview title={title} blocks={blocks} theme={theme} fullName={fullName} commit={commit} />
-          </div>
-        </div>
-      </div>
+      <SessionContent
+        theme={theme}
+        view={view}
+        setView={setView}
+        title={title}
+        setTitle={setTitle}
+        blocks={blocks}
+        commit={commit}
+        files={files}
+        fullName={fullName}
+        listenForCommits={listenForCommits}
+        setListenForCommits={setListenForCommits}
+        handleRemoveCommit={handleRemoveCommit}
+        setCommitSelectorOpen={setCommitSelectorOpen}
+        sessionIdeas={sessionIdeas}
+        clearIdeas={clearIdeas}
+        generateIdeas={generateIdeas}
+        codeChanges={codeChanges}
+        sensors={sensors}
+        handleDragEnd={handleDragEnd}
+        generateMarkdownBlock={generateMarkdownBlock}
+        addNewBlock={addNewBlock}
+        removeBlock={removeBlock}
+        updateBlockContent={updateBlockContent}
+        updateBlockCollapsed={updateBlockCollapsed}
+        updateBlockFile={updateBlockFile}
+        uploadImage={uploadImage}
+        openDiffDialog={openDiffDialog}
+        openLinkSelector={openLinkSelector}
+      />
 
       <CommitSelectorDialog open={commitSelectorOpen} onOpenChange={setCommitSelectorOpen} fullName={fullName} onSelect={handleCommitSelect} />
 
