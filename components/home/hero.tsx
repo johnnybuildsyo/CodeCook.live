@@ -38,7 +38,7 @@ export default function Hero() {
         <div className="mt-8">
           {profile ? (
             <Link href={`/${profile.username}`}>
-              <Button className="bg-blue-500 hover:bg-blue-600 text-xl px-8 py-4 h-auto" size="lg">
+              <Button className="bg-blue-500 hover:bg-blue-600 text-white text-xl px-8 py-4 h-auto" size="lg">
                 Go to Dashboard <ChevronsRight className="h-8 w-8 ml-1 scale-150" />
               </Button>
             </Link>

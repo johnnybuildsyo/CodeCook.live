@@ -50,7 +50,7 @@ export default async function SessionPage({ params }: SessionPageProps) {
       <Header />
       <div className="relative flex">
         <main className="flex-1 transition-[margin] duration-200 ease-in-out">
-          <div className="container mx-auto px-4 py-8 w-full max-w-6xl">
+          <div className="container mx-auto p-8 w-full max-w-6xl">
             <Link href={`/${username}/${projectId}`} className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6">
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back to project
