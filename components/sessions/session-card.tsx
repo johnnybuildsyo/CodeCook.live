@@ -8,7 +8,7 @@ import { Block, Session } from "@/lib/types/session"
 import { BoltIcon } from "@heroicons/react/24/solid"
 import { createClient } from "@/lib/supabase/client"
 import { useState } from "react"
-import { X } from "lucide-react"
+import { X, Copy, Check } from "lucide-react"
 import { LoadingAnimation } from "../ui/loading-animation"
 import {
   AlertDialog,
@@ -34,6 +34,7 @@ interface SessionCardProps {
 
 export function SessionCard({ session, username, projectId, featured = false, currentUser }: SessionCardProps) {
   const [isArchiving, setIsArchiving] = useState(false)
+  const [copied, setCopied] = useState(false)
   const sessionUrl = `/${username}/${projectId}/session/${session.id}`
   const startSessionUrl = `${sessionUrl}/live`
   const introSection = session.blocks.find((section: Block) => section.type === "markdown" && section.role === "intro")
@@ -46,6 +47,12 @@ export function SessionCard({ session, username, projectId, featured = false, cu
     const supabase = createClient()
     await supabase.from("sessions").update({ is_archived: true }).eq("id", session.id)
     setIsArchiving(false)
+  }
+
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(`${window.location.origin}${sessionUrl}`)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   if (session.is_archived === true) {
@@ -68,6 +75,10 @@ export function SessionCard({ session, username, projectId, featured = false, cu
         </div>
       </div>
       <div className="flex justify-end pb-1 gap-2">
+        <Button onClick={copyToClipboard} variant="outline" size="sm" className="gap-2">
+          {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+          {copied ? "Copied!" : "Copy Link"}
+        </Button>
         <Button asChild variant="outline" size="sm">
           <Link href={sessionUrl} className="inline-flex items-center">
             View Session
