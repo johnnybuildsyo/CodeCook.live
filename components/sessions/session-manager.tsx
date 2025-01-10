@@ -185,7 +185,9 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     <SessionProvider>
       <div className="w-full flex gap-4 justify-between items-center 2xl:px-8 pb-4 xl:border-b">
         <div className="flex items-center gap-2">
-          <h3 className="text-2xl font-bold mr-2">Live Session</h3>
+          <div className="flex flex-col justify-start items-start w-[175px]">
+            <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
+          </div>
           <Button size="sm" className="bg-blue-500/90 hover:bg-blue-500 text-white" onClick={handleCopyShareLink}>
             <Share2 className={cn("h-4 w-4 mr-1", isCopied && "mr-2")} />
             {isCopied ? "Copied" : "Share Link"}
@@ -196,7 +198,6 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
           <EndSessionButton username={username} projectSlug={projectSlug} sessionId={session.id} />
         </div>
       </div>

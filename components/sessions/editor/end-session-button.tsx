@@ -24,13 +24,13 @@ export function EndSessionButton({ username, projectSlug, sessionId }: EndSessio
 
   return (
     <div className="flex items-center gap-2">
-      <Button variant="outline" className="flex flex-col items-center h-auto gap-0.5" onClick={handleEndSession} disabled={isEnding}>
+      <Button className="flex flex-col items-center h-auto gap-0.5" onClick={handleEndSession} disabled={isEnding}>
         <span className="flex items-center gap-1 text-xs">
           <PauseCircleIcon className={`h-3 w-3 ${isEnding ? "animate-pulse text-muted-foreground" : ""}`} />
           {isEnding ? "Ending Session..." : "End Session"}
         </span>
         <span className="text-[10px] font-mono font-light flex items-center gap-0.5">
-          <ChevronsLeft className="h-3 w-3 opacity-50" /> back to project
+          <ChevronsLeft className="h-3 w-3 opacity-70" /> back to project
         </span>
       </Button>
     </div>
