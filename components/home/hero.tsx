@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
-import { Check } from "lucide-react"
+import { Check, ChevronsRight } from "lucide-react"
 import { WaitlistDialog } from "./waitlist-dialog"
 import { BoltIcon } from "@heroicons/react/24/solid"
 
@@ -38,7 +38,9 @@ export default function Hero() {
         <div className="mt-8">
           {profile ? (
             <Link href={`/${profile.username}`}>
-              <Button size="lg">Go to Dashboard</Button>
+              <Button className="bg-blue-500 hover:bg-blue-600 text-xl px-8 py-4 h-auto" size="lg">
+                Go to Dashboard <ChevronsRight className="h-8 w-8 ml-1 scale-150" />
+              </Button>
             </Link>
           ) : isOnWaitlist ? (
             <div className="flex flex-col items-center gap-2">
