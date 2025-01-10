@@ -8,7 +8,7 @@ import { Block, Session } from "@/lib/types/session"
 import { BoltIcon } from "@heroicons/react/24/solid"
 import { createClient } from "@/lib/supabase/client"
 import { useState } from "react"
-import { X, Copy, Check } from "lucide-react"
+import { X, Copy, Check, ChevronsRight } from "lucide-react"
 import { LoadingAnimation } from "../ui/loading-animation"
 import {
   AlertDialog,
@@ -60,7 +60,7 @@ export function SessionCard({ session, username, projectId, featured = false, cu
   }
 
   return (
-    <div className={cn("border-t py-4 lg:pr-8 grid grid-cols-1 lg:grid-cols-3 gap-4")}>
+    <div className={cn("border-t-2 border-dotted pt-6 pb-4 lg:pr-8 grid grid-cols-1 lg:grid-cols-3 gap-4")}>
       <div className="lg:col-span-2">
         <div className={cn("font-medium", featured ? "text-2xl" : "text-lg")}>{session.title}</div>
         <div className="text-xs font-mono flex items-center space-x-2 pb-2">
@@ -81,6 +81,7 @@ export function SessionCard({ session, username, projectId, featured = false, cu
         </Button>
         <Button asChild variant="outline" size="sm">
           <Link href={sessionUrl} className="inline-flex items-center">
+            <ChevronsRight className="h-3 w-3 opacity-70" />
             View Session
           </Link>
         </Button>
