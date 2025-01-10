@@ -11,6 +11,7 @@ export function BlueskyButton({ postUri, onPublish }: BlueskyButtonProps) {
   return (
     <Button
       variant="outline"
+      size="sm"
       onClick={() => {
         if (postUri) {
           // Convert AT Protocol URI to Bluesky web URL

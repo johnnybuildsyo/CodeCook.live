@@ -25,7 +25,7 @@ export function EndSessionButton({ username, projectSlug, sessionId }: EndSessio
   return (
     <div className="flex items-center gap-2">
       <Button variant="outline" className="flex flex-col items-center h-auto gap-0.5" onClick={handleEndSession} disabled={isEnding}>
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-1 text-xs">
           <PauseCircleIcon className={`h-3 w-3 ${isEnding ? "animate-pulse text-muted-foreground" : ""}`} />
           {isEnding ? "Ending Session..." : "End Session"}
         </span>

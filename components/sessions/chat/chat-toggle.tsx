@@ -30,9 +30,9 @@ export function ChatToggle({ sessionId, initialEnabled }: ChatToggleProps) {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Switch checked={isEnabled} onCheckedChange={handleToggle} className="data-[state=checked]:bg-green-500" />
-      <Label className="text-sm flex items-center gap-1.5">Chat</Label>
+    <div className="flex items-center gap-1">
+      <Switch checked={isEnabled} onCheckedChange={handleToggle} className="data-[state=checked]:bg-green-500 scale-90" />
+      <Label className="text-xs flex items-center gap-1.5">Chat</Label>
     </div>
   )
 }
