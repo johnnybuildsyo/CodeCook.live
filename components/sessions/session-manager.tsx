@@ -122,7 +122,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     const sessionUrl = `${window.location.origin}/${username}/${projectSlug}/sessions/${session.id}`
     const chatEnabled = session.chat_enabled ?? false
     const chatText = chatEnabled ? " (now with chat!)" : ""
-    const announcementText = `I'm starting up a live CodeCook coding session${chatText} => join me for "${title}" at ${sessionUrl}`
+    const announcementText = `I'm starting up a live CodeCook coding session${chatText} => “${title}” at ${sessionUrl}`
     await navigator.clipboard.writeText(announcementText)
     setIsAnnouncementCopied(true)
     setTimeout(() => setIsAnnouncementCopied(false), 2000)

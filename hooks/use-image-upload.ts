@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 import { Block } from "@/lib/types/session"
+import { convertImageUrl } from "@/lib/utils"
 
 interface UseImageUploadResult {
   isUploading: boolean
@@ -31,7 +32,7 @@ export function useImageUpload(
       setBlocks((current) => {
         const updatedBlocks = current.map((block) => {
           if (block.id === blockId && block.type === "markdown") {
-            const imageMarkdown = `\n\n![](${image_url})`
+            const imageMarkdown = `\n\n![](${convertImageUrl(image_url)})`
             const updatedContent = block.content + imageMarkdown
             return {
               ...block,

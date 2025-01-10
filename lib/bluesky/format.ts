@@ -20,7 +20,7 @@ export function formatCodeBlock(code: string, language?: string): string {
   return `\`\`\`${language || ""}\n${code}\n\`\`\``
 }
 
-export function convertMarkdownToBluesky(markdown: string): string {
+export function convertMarkdownToSocialPost(markdown: string): string {
   return (
     markdown
       // Remove image markdown as it will be handled separately
@@ -199,7 +199,7 @@ export function formatBlueskyThread(
       }
 
       // Then convert the text
-      const text = convertMarkdownToBluesky(block.content || "")
+      const text = convertMarkdownToSocialPost(block.content || "")
       const chunks = splitTextIntoChunks(text, MAX_POST_LENGTH)
 
       // Add each chunk as a separate post

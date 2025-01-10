@@ -1,11 +1,14 @@
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { X, FileDiff, Plus, ChevronDown, ChevronUp, SparklesIcon } from "lucide-react"
+import { X, FileDiff, Plus, ChevronDown, ChevronUp, SparklesIcon, Copy, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { CommitDiff } from "./commit-diff"
 import { ImageUpload } from "./image-upload"
 import { CommitLink } from "../commit-link"
 import { Block } from "@/lib/types/session"
+import { convertMarkdownToSocialPost, extractImagesFromMarkdown } from "@/lib/bluesky/format"
+import { useState } from "react"
+import { toast } from "sonner"
 
 interface BlockRendererProps {
   block: Block
@@ -36,16 +39,35 @@ export function BlockRenderer({
   onOpenLinkSelector,
   fullName,
 }: BlockRendererProps) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyContent = async () => {
+    const formattedContent = convertMarkdownToSocialPost(block.content || "")
+    const images = extractImagesFromMarkdown(block.content || "")
+
+    await navigator.clipboard.writeText(formattedContent)
+    setCopied(true)
+    toast.success("Content copied to clipboard!", {
+      description: images.length > 0 ? "Text copied! Note: You'll need to upload the images separately to your social media post." : "Ready to share on Bluesky, X, or other social platforms!",
+      duration: 3000,
+      position: "top-center",
+    })
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <>
       {block.type === "markdown" && (
         <div className="relative mt-2">
           <div className="flex flex-col gap-2 absolute -right-8 px-1">
-            <Button variant="ghost" className="h-6 w-6 p-0" onClick={() => onRemoveBlock(block.id)}>
+            <Button aria-label="Remove Block" variant="ghost" className="h-6 w-6 p-0" onClick={() => onRemoveBlock(block.id)}>
               <X className="h-4 w-4" />
             </Button>
-            <Button variant="outline" className="h-6 w-6 p-0 border-yellow-500/30 hover:animate-pulse" onClick={() => onGenerateMarkdown(block)}>
+            <Button aria-label="Generate Markdown" variant="outline" className="h-6 w-6 p-0 border-yellow-500/30 hover:animate-pulse" onClick={() => onGenerateMarkdown(block)}>
               <SparklesIcon className="h-4 w-4 text-yellow-500" />
+            </Button>
+            <Button aria-label="Copy for Social" variant="outline" className="h-6 w-6 p-0" onClick={handleCopyContent}>
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4 scale-90 text-blue-600" />}
             </Button>
           </div>
           <Textarea
