@@ -22,13 +22,15 @@ import { useDialogManager } from "@/hooks/use-dialog-manager"
 import { useBlockManager } from "@/hooks/use-block-manager"
 import { useFileSelector } from "@/hooks/use-file-selector"
 import { Button } from "@/components/ui/button"
-import { Share2 } from "lucide-react"
+import { Link } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ChatToggle } from "./chat/chat-toggle"
 import { CommitSelectorDialog } from "./editor/commit-selector-dialog"
 import { useCommitPolling } from "../../hooks/use-commit-polling"
 import { useSessionHandlers } from "../../hooks/use-session-handlers"
 import { SessionContent } from "./editor/session-content"
+import { MegaphoneIcon } from "@heroicons/react/24/solid"
+import { toast } from "sonner"
 
 interface SessionManagerProps {
   projectId: string
@@ -55,6 +57,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [commit, setCommit] = useState(initialCommit)
   const [listenForCommits, setListenForCommits] = useState(!initialCommit.sha)
   const [isCopied, setIsCopied] = useState(false)
+  const [isAnnouncementCopied, setIsAnnouncementCopied] = useState(false)
   const [commitSelectorOpen, setCommitSelectorOpen] = useState(false)
 
   const sensors = useSensors(
@@ -115,6 +118,18 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     setCommitSelectorOpen,
   })
 
+  const handleCopyAnnouncement = async () => {
+    const announcementText = `I'm starting up a live coding right now => join me for “${title}” at ${window.location.origin}/${username}/${projectSlug}/sessions/${session.id}`
+    await navigator.clipboard.writeText(announcementText)
+    setIsAnnouncementCopied(true)
+    setTimeout(() => setIsAnnouncementCopied(false), 2000)
+    toast.success("Announcement copied to clipboard!", {
+      description: "Share it with your audience to let them know you're live!",
+      duration: 3000,
+      position: "top-center",
+    })
+  }
+
   useEffect(() => {
     const handleBeforeUnload = () => {
       onUnmount?.()
@@ -136,8 +151,18 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
             <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
           </div>
           <Button size="sm" className="bg-blue-500/90 hover:bg-blue-500 text-white" onClick={handleCopyShareLink}>
-            <Share2 className={cn("h-4 w-4 mr-1", isCopied && "mr-2")} />
-            {isCopied ? "Copied" : "Share Link"}
+            <Link className={cn("h-4 w-4", isCopied && "mr-1")} />
+            {isCopied ? "Copied" : "Copy Link"}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!title.trim()}
+            className={cn("border-blue-500/90 text-blue-500 hover:bg-blue-500/90 hover:text-white", !title.trim() && "opacity-50 cursor-not-allowed")}
+            onClick={handleCopyAnnouncement}
+          >
+            <MegaphoneIcon className={cn("h-4 w-4 -rotate-12 scale-110", isAnnouncementCopied && "mr-1")} />
+            {isAnnouncementCopied ? "Copied" : "Announce"}
           </Button>
           <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
           <div className="pl-2">

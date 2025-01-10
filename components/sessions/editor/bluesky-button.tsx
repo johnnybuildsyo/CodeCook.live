@@ -22,7 +22,7 @@ export function BlueskyButton({ postUri, onPublish }: BlueskyButtonProps) {
         }
       }}
     >
-      <BlueskyIcon className="h-4 w-4 mr-1 text-blue-500" />
+      <BlueskyIcon className="h-4 w-4 text-blue-500" />
       {postUri ? (
         <span className="flex items-center gap-1">
           <span>View on Bluesky</span>
