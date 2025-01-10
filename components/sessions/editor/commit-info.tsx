@@ -18,10 +18,13 @@ interface CommitInfoProps {
   listenForCommits: boolean
   onListenChange: (value: boolean) => void
   onRemoveCommit?: () => void
+  onFilesChange?: (files: FileChange[]) => void
+  onChooseCommit: () => void
 }
 
-export function CommitInfo({ commit, files, fullName, listenForCommits, onListenChange, onRemoveCommit }: CommitInfoProps) {
+export function CommitInfo({ commit, files, fullName, listenForCommits, onListenChange, onRemoveCommit, onFilesChange, onChooseCommit }: CommitInfoProps) {
   const [showFiles, setShowFiles] = useState(false)
+  const [loadingFiles, setLoadingFiles] = useState(false)
   const fileArray = Array.isArray(files) ? files : []
 
   // Automatically start listening when there's no commit
@@ -31,13 +34,55 @@ export function CommitInfo({ commit, files, fullName, listenForCommits, onListen
     }
   }, [commit.sha, listenForCommits, onListenChange])
 
+  // Handle listen mode changes
+  const handleListenChange = (value: boolean) => {
+    if (value && commit.sha && onRemoveCommit) {
+      onRemoveCommit()
+    }
+    onListenChange(value)
+  }
+
+  // Handle choosing new commit
+  const handleChooseCommit = () => {
+    if (commit.sha && onRemoveCommit) {
+      onRemoveCommit()
+    }
+    onChooseCommit()
+  }
+
+  // Fetch files when commit changes
+  useEffect(() => {
+    async function fetchFiles() {
+      if (!commit.sha || !onFilesChange) return
+      setLoadingFiles(true)
+      try {
+        const response = await fetch(`/api/github/commits/${commit.sha}/diff?repo=${encodeURIComponent(fullName)}`)
+        const data = await response.json()
+        onFilesChange(data)
+      } catch (error) {
+        console.error("Failed to fetch files:", error)
+      } finally {
+        setLoadingFiles(false)
+      }
+    }
+
+    fetchFiles()
+  }, [commit.sha, fullName, onFilesChange])
+
   return (
     <>
-      <div className="flex items-center pb-1 gap-2">
-        <Switch id="listen-mode" checked={listenForCommits} onCheckedChange={onListenChange} className="data-[state=checked]:bg-green-500" />
-        <Label htmlFor="listen-mode" className="text-sm font-medium">
-          Listening for commits
-        </Label>
+      <div className="flex items-center justify-between pb-1">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={handleChooseCommit}>
+            Choose New Commit
+          </Button>
+          <div className="flex items-center gap-2">
+            <Switch id="listen-mode" checked={listenForCommits} onCheckedChange={handleListenChange} className="data-[state=checked]:bg-green-500" />
+            <Label htmlFor="listen-mode" className="text-sm font-medium">
+              Listen for commits
+            </Label>
+          </div>
+        </div>
       </div>
       <div className="py-4 pl-4 pr-2 bg-muted/50 rounded-md">
         <div className="font-medium flex justify-between items-center">
@@ -64,7 +109,7 @@ export function CommitInfo({ commit, files, fullName, listenForCommits, onListen
             <div className="flex items-center gap-2 text-xs font-mono">
               <div className="flex items-center gap-1">
                 <File className="h-3 w-3" />
-                {fileArray.length}
+                {loadingFiles ? <LoadingAnimation className="text-xs">Loading files</LoadingAnimation> : fileArray.length}
               </div>
               <button className="pl-1 py-1 h-auto text-foreground/70 hover:text-foreground" onClick={() => setShowFiles(!showFiles)}>
                 {showFiles ? (

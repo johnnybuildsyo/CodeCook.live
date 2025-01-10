@@ -32,6 +32,7 @@ import { Share2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { ChatToggle } from "./chat/chat-toggle"
+import { CommitSelectorDialog } from "./editor/commit-selector-dialog"
 
 interface SessionManagerProps {
   projectId: string
@@ -59,6 +60,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [listenForCommits, setListenForCommits] = useState(!initialCommit.sha)
   const [listenStartTime, setListenStartTime] = useState<string | null>(null)
   const [isCopied, setIsCopied] = useState(false)
+  const [commitSelectorOpen, setCommitSelectorOpen] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -181,6 +183,25 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     setTimeout(() => setIsCopied(false), 2000)
   }
 
+  const handleCommitSelect = async (selectedCommit: { sha: string; commit: { message: string; author: { name: string; date: string } } }) => {
+    // First remove the current commit
+    handleRemoveCommit()
+
+    // Then set the new commit
+    setCommit({
+      sha: selectedCommit.sha,
+      message: selectedCommit.commit.message,
+      author_name: selectedCommit.commit.author.name,
+      authored_at: selectedCommit.commit.author.date,
+    })
+    setFiles([])
+    setCommitSelectorOpen(false)
+  }
+
+  const handleFilesChange = (newFiles: FileChange[]) => {
+    setFiles(newFiles)
+  }
+
   return (
     <SessionProvider>
       <div className="w-full flex gap-4 justify-between items-center 2xl:px-8 pb-4 xl:border-b">
@@ -205,13 +226,22 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
         <div className="space-y-4 2xl:grid 2xl:grid-cols-2">
           <div className="pt-4 2xl:p-8 2xl:pt-2 space-y-4 2xl:h-screen 2xl:overflow-y-auto relative">
             {sessionIdeas.length > 0 && <SessionIdeas ideas={sessionIdeas} onClose={clearIdeas} />}
-            <Button className="absolute top-4 right-0" size="sm" variant="outline" onClick={() => generateIdeas(codeChanges)}>
+            <Button className="absolute top-4 right-0 translate-x-4 gap-0" size="sm" variant="outline" onClick={() => generateIdeas(codeChanges)}>
               <>
                 <Sparkles className="h-4 w-4 mr-2 text-yellow-500" />
                 AI Assist
               </>
             </Button>
-            <CommitInfo commit={commit} files={files} fullName={fullName} listenForCommits={listenForCommits} onListenChange={setListenForCommits} onRemoveCommit={handleRemoveCommit} />
+            <CommitInfo
+              commit={commit}
+              files={files}
+              fullName={fullName}
+              listenForCommits={listenForCommits}
+              onListenChange={setListenForCommits}
+              onRemoveCommit={handleRemoveCommit}
+              onFilesChange={handleFilesChange}
+              onChooseCommit={() => setCommitSelectorOpen(true)}
+            />
             <SessionHeader title={title} onTitleChange={setTitle} view={view} onViewChange={(v) => setView(v as "edit" | "preview")} />
             {view === "edit" ? (
               <>
@@ -255,6 +285,8 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
           </div>
         </div>
       </div>
+
+      <CommitSelectorDialog open={commitSelectorOpen} onOpenChange={setCommitSelectorOpen} fullName={fullName} onSelect={handleCommitSelect} />
 
       <DiffSelector
         open={diffDialogOpen}
