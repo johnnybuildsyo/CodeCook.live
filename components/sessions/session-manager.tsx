@@ -22,15 +22,16 @@ import { useDialogManager } from "@/hooks/use-dialog-manager"
 import { useBlockManager } from "@/hooks/use-block-manager"
 import { useFileSelector } from "@/hooks/use-file-selector"
 import { Button } from "@/components/ui/button"
-import { BookCopyIcon, Link } from "lucide-react"
+import { Link } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { generateSessionMarkdown, copyToClipboardWithFeedback } from "@/lib/utils/markdown"
+import { copyToClipboardWithFeedback, generateSessionHTML } from "@/lib/utils/markdown"
 import { ChatToggle } from "./chat/chat-toggle"
 import { CommitSelectorDialog } from "./editor/commit-selector-dialog"
 import { useCommitPolling } from "../../hooks/use-commit-polling"
 import { useSessionHandlers } from "../../hooks/use-session-handlers"
 import { SessionContent } from "./editor/session-content"
 import { MegaphoneIcon } from "@heroicons/react/24/solid"
+import CopyRichText from "./editor/copy-rich-text"
 
 interface SessionManagerProps {
   projectId: string
@@ -59,7 +60,8 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [isCopied, setIsCopied] = useState(false)
   const [isAnnouncementCopied, setIsAnnouncementCopied] = useState(false)
   const [commitSelectorOpen, setCommitSelectorOpen] = useState(false)
-  const [isMarkdownCopied, setIsMarkdownCopied] = useState(false)
+
+  const sessionUrl = `${window.location.origin}/${username}/${projectSlug}/sessions/${session.id}`
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -127,12 +129,6 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     await copyToClipboardWithFeedback(announcementText, setIsAnnouncementCopied)
   }
 
-  const handleCopyMarkdown = async () => {
-    const sessionUrl = `${window.location.origin}/${username}/${projectSlug}/sessions/${session.id}`
-    const markdownContent = generateSessionMarkdown(title, blocks, sessionUrl)
-    await copyToClipboardWithFeedback(markdownContent, setIsMarkdownCopied)
-  }
-
   useEffect(() => {
     const handleBeforeUnload = () => {
       onUnmount?.()
@@ -167,16 +163,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
             <MegaphoneIcon className={cn("h-4 w-4 -rotate-12 scale-110", isAnnouncementCopied && "mr-1")} />
             {isAnnouncementCopied ? "Copied" : "Announce"}
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={!title.trim()}
-            className={cn("border-blue-500/90 text-blue-500 hover:bg-blue-500/90 hover:text-white", !title.trim() && "opacity-50 cursor-not-allowed")}
-            onClick={handleCopyMarkdown}
-          >
-            <BookCopyIcon className={cn("h-4 w-4", isMarkdownCopied && "mr-1")} />
-            {isMarkdownCopied ? "Copied" : "Markdown"}
-          </Button>
+          <CopyRichText htmlContent={generateSessionHTML(title, blocks, sessionUrl)} disabled={!title.trim()} />
           <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
           <div className="pl-2">
             <ChatToggle sessionId={session.id} initialEnabled={session.chat_enabled ?? false} />
