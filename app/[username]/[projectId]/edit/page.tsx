@@ -56,8 +56,8 @@ export default async function ProjectEditPage({ params }: ProjectEditPageProps) 
           <p className="text-muted-foreground">Update your project details and media</p>
         </div>
         <div className="space-y-8">
+          <ProjectMediaEditor projectId={project.id} screenshotUrl={project.screenshot_url} logoUrl={project.logo_url} projectName={project.name} username={username} homepage={project.homepage} />
           <ProjectEditForm project={project} username={username} />
-          <ProjectMediaEditor projectId={project.id} screenshotUrl={project.screenshot_url} logoUrl={project.logo_url} />
         </div>
       </main>
     </div>

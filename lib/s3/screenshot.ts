@@ -24,8 +24,8 @@ export async function generateAndUploadScreenshot({ url, key }: GenerateScreensh
 
     const page = await browser.newPage()
     await page.setViewport({
-      width: 1200,
-      height: 630,
+      width: 1280,
+      height: 720,
       deviceScaleFactor: 1,
     })
 

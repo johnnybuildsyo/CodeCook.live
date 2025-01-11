@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import type { GithubRepo } from "@/types/github"
 import { toSlug } from "@/lib/utils/slug"
-import { generateAndUploadScreenshot } from "@/lib/s3/screenshot"
+import { generateProjectScreenshot } from "./generate-screenshot"
 
 export async function createProject(username: string, repo: GithubRepo) {
   const supabase = await createClient()
@@ -54,12 +54,9 @@ export async function createProject(username: string, repo: GithubRepo) {
 
     // Generate and upload screenshot if homepage URL exists
     if (repo.homepage) {
-      try {
-        const screenshotUrl = await generateAndUploadScreenshot({
-          url: repo.homepage,
-          key: `screenshots/${username}/${slug}.png`,
-        })
-
+      const { url: screenshotUrl } = await generateProjectScreenshot(username, slug, repo.homepage)
+      
+      if (screenshotUrl) {
         // Update project with screenshot URL
         const { error: updateError } = await supabase
           .from("projects")
@@ -69,8 +66,6 @@ export async function createProject(username: string, repo: GithubRepo) {
         if (updateError) {
           console.error("Failed to update project with screenshot URL:", updateError)
         }
-      } catch (screenshotError) {
-        console.error("Failed to generate and upload screenshot:", screenshotError)
       }
     }
 
