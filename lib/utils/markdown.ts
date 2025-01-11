@@ -13,7 +13,7 @@ export function generateSessionMarkdown(title: string, blocks: Block[], sessionU
     }
   })
 
-  markdownContent += `\nView full session at: ${sessionUrl}`
+  markdownContent += `\nOriginally published as a CodeCook session at ${sessionUrl}`
   return markdownContent
 }
 

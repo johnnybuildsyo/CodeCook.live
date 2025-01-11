@@ -31,7 +31,6 @@ import { useCommitPolling } from "../../hooks/use-commit-polling"
 import { useSessionHandlers } from "../../hooks/use-session-handlers"
 import { SessionContent } from "./editor/session-content"
 import { MegaphoneIcon } from "@heroicons/react/24/solid"
-import { toast } from "sonner"
 
 interface SessionManagerProps {
   projectId: string
