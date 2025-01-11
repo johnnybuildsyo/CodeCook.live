@@ -57,7 +57,7 @@ export async function createProject(username: string, repo: GithubRepo) {
       try {
         const screenshotUrl = await generateAndUploadScreenshot({
           url: repo.homepage,
-          key: `/screenshots/${username}/${slug}.png`,
+          key: `screenshots/${username}/${slug}.png`,
         })
 
         // Update project with screenshot URL

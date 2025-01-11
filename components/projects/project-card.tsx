@@ -12,6 +12,7 @@ interface ProjectCardProps {
     created_at: string
     updated_at: string
     logo_url?: string | null
+    screenshot_url?: string | null
   }
   username: string
   sessionCount?: number
@@ -21,9 +22,11 @@ export function ProjectCard({ project, username, sessionCount = 0 }: ProjectCard
   return (
     <Link href={`/${username}/${project.name}`} className="block hover:no-underline group">
       <Card className="transition-all hover:shadow-md group-hover:border-primary">
-        {project.logo_url && (
-          <div className="relative w-full h-48 overflow-hidden rounded-t-lg">
-            <Image src={convertImageUrl(project.logo_url)} alt={project.display_name} className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+        {(project.screenshot_url || project.logo_url) && (
+          <div className="p-6 pb-0">
+            <div className="relative w-full aspect-video overflow-hidden border border-foreground/10 rounded-lg">
+              <Image src={convertImageUrl(project.screenshot_url || "")} alt={project.display_name} fill={true} className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+            </div>
           </div>
         )}
         <CardHeader>
