@@ -22,8 +22,9 @@ import { useDialogManager } from "@/hooks/use-dialog-manager"
 import { useBlockManager } from "@/hooks/use-block-manager"
 import { useFileSelector } from "@/hooks/use-file-selector"
 import { Button } from "@/components/ui/button"
-import { Link } from "lucide-react"
+import { BookCopyIcon, Link } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { generateSessionMarkdown, copyToClipboardWithFeedback } from "@/lib/utils/markdown"
 import { ChatToggle } from "./chat/chat-toggle"
 import { CommitSelectorDialog } from "./editor/commit-selector-dialog"
 import { useCommitPolling } from "../../hooks/use-commit-polling"
@@ -59,6 +60,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [isCopied, setIsCopied] = useState(false)
   const [isAnnouncementCopied, setIsAnnouncementCopied] = useState(false)
   const [commitSelectorOpen, setCommitSelectorOpen] = useState(false)
+  const [isMarkdownCopied, setIsMarkdownCopied] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -122,15 +124,14 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     const sessionUrl = `${window.location.origin}/${username}/${projectSlug}/sessions/${session.id}`
     const chatEnabled = session.chat_enabled ?? false
     const chatText = chatEnabled ? " (now with chat!)" : ""
-    const announcementText = `I'm starting up a live #buildinpublic CodeCook coding session${chatText} => “${title}” at ${sessionUrl}`
-    await navigator.clipboard.writeText(announcementText)
-    setIsAnnouncementCopied(true)
-    setTimeout(() => setIsAnnouncementCopied(false), 2000)
-    toast.success("Announcement copied to clipboard!", {
-      description: "Share it with your audience to let them know you're live!",
-      duration: 3000,
-      position: "top-center",
-    })
+    const announcementText = `I'm starting up a live #buildinpublic CodeCook coding session${chatText} => "${title}" at ${sessionUrl}`
+    await copyToClipboardWithFeedback(announcementText, setIsAnnouncementCopied)
+  }
+
+  const handleCopyMarkdown = async () => {
+    const sessionUrl = `${window.location.origin}/${username}/${projectSlug}/sessions/${session.id}`
+    const markdownContent = generateSessionMarkdown(title, blocks, sessionUrl)
+    await copyToClipboardWithFeedback(markdownContent, setIsMarkdownCopied)
   }
 
   useEffect(() => {
@@ -166,6 +167,16 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
           >
             <MegaphoneIcon className={cn("h-4 w-4 -rotate-12 scale-110", isAnnouncementCopied && "mr-1")} />
             {isAnnouncementCopied ? "Copied" : "Announce"}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!title.trim()}
+            className={cn("border-blue-500/90 text-blue-500 hover:bg-blue-500/90 hover:text-white", !title.trim() && "opacity-50 cursor-not-allowed")}
+            onClick={handleCopyMarkdown}
+          >
+            <BookCopyIcon className={cn("h-4 w-4", isMarkdownCopied && "mr-1")} />
+            {isMarkdownCopied ? "Copied" : "Markdown"}
           </Button>
           <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
           <div className="pl-2">

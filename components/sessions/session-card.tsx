@@ -8,10 +8,11 @@ import { Block, Session } from "@/lib/types/session"
 import { BoltIcon } from "@heroicons/react/24/solid"
 import { createClient } from "@/lib/supabase/client"
 import { useState } from "react"
-import { X, Copy, Check, ChevronsRight } from "lucide-react"
+import { X, Copy, Check, ChevronsRight, BookCopy } from "lucide-react"
 import { LoadingAnimation } from "../ui/loading-animation"
 import { BlueskyButton } from "./editor/bluesky-button"
 import { BlueskyShareDialog } from "./editor/bluesky-share-dialog"
+import { generateSessionMarkdown, copyToClipboardWithFeedback } from "@/lib/utils/markdown"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +38,7 @@ interface SessionCardProps {
 export function SessionCard({ session, username, projectId, featured = false, currentUser }: SessionCardProps) {
   const [isArchiving, setIsArchiving] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [markdownCopied, setMarkdownCopied] = useState(false)
   const [blueskyDialogOpen, setBlueskyDialogOpen] = useState(false)
   const sessionUrl = `/${username}/${projectId}/session/${session.id}`
   const startSessionUrl = `${sessionUrl}/live`
@@ -53,9 +55,14 @@ export function SessionCard({ session, username, projectId, featured = false, cu
   }
 
   const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(`${window.location.origin}${sessionUrl}`)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    const fullUrl = `${window.location.origin}${sessionUrl}`
+    await copyToClipboardWithFeedback(fullUrl, setCopied)
+  }
+
+  const copyMarkdown = async () => {
+    const fullUrl = `${window.location.origin}${sessionUrl}`
+    const markdownContent = generateSessionMarkdown(session.title, session.blocks, fullUrl)
+    await copyToClipboardWithFeedback(markdownContent, setMarkdownCopied)
   }
 
   if (session.is_archived === true) {
@@ -67,7 +74,7 @@ export function SessionCard({ session, username, projectId, featured = false, cu
       <div className={cn("border-t-2 border-dotted pt-6 pb-4 lg:pr-8 grid grid-cols-1 lg:grid-cols-3 gap-4")}>
         <div className="lg:col-span-2">
           <Link href={sessionUrl}>
-            <div className={cn("font-medium", featured ? "text-2xl" : "text-lg")}>{session.title}</div>
+            <div className={cn("font-medium", featured ? "text-2xl" : "text-lg", isAuthor && "line-clamp-1 w-[450px]")}>{session.title}</div>
           </Link>
           <div className="text-xs font-mono flex items-center space-x-2 pb-2">
             <span>{new Date(session.created_at).toLocaleDateString()}</span>
@@ -87,6 +94,10 @@ export function SessionCard({ session, username, projectId, featured = false, cu
           <Button onClick={copyToClipboard} variant="outline" size="sm" className="gap-2">
             {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             {copied ? "Copied!" : "Copy Link"}
+          </Button>
+          <Button onClick={copyMarkdown} variant="outline" size="sm" className="gap-2">
+            {markdownCopied ? <Check className="h-3 w-3" /> : <BookCopy className="h-3 w-3" />}
+            {markdownCopied ? "Copied!" : "Markdown"}
           </Button>
           {isAuthor && <BlueskyButton postUri={session.bluesky_post_uri} onPublish={() => setBlueskyDialogOpen(true)} />}
           <Button asChild variant="outline" size="sm">

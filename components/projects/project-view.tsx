@@ -44,7 +44,7 @@ export function ProjectView({ project, stats, sessions, session, username, proje
               </div>
             )}
             <div className="grow w-full">
-              <h1 className="text-3xl font-bold mb-1">{project.display_name || project.name}</h1>
+              <h1 className="text-3xl font-extrabold mb-1">{project.display_name || project.name}</h1>
               {project.homepage && (
                 <div>
                   <a href={project.homepage} target="_blank" className="inline-flex items-center space-x-2 text-blue-500 font-medium underline mb-8">
