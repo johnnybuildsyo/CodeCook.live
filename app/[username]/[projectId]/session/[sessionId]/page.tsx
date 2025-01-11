@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
 import Header from "@/components/layout/header"
 import { SessionView } from "@/components/sessions/session-view"
 import Link from "next/link"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { ChatDrawer } from "@/components/sessions/chat/chat-drawer"
@@ -50,14 +50,8 @@ export default async function SessionPage({ params }: SessionPageProps) {
       <Header />
       <div className="relative flex">
         <main className="flex-1 transition-[margin] duration-200 ease-in-out">
-          <div className="container mx-auto p-8 w-full max-w-6xl">
-            <Link href={`/${username}/${projectId}`} className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to project
-            </Link>
-
-            <SessionView session={session} fullName={project.full_name} />
-
+          <div className="container mx-auto px-4 py-8 w-full max-w-6xl">
+            <SessionView username={username} projectId={projectId} session={session} fullName={project.full_name} />
             <div className="flex justify-between mt-8">
               {prevSession ? (
                 <Button variant="outline" size="sm" asChild>

@@ -2,6 +2,8 @@
 
 import type { Session } from "@/lib/types/session"
 import { useTheme } from "next-themes"
+import Link from "next/link"
+import { ChevronLeft } from "lucide-react"
 import { SessionContent } from "./session-content"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
@@ -11,9 +13,11 @@ import { Circle } from "lucide-react"
 interface SessionViewProps {
   session: Session
   fullName: string
+  username: string
+  projectId: string
 }
 
-export function SessionView({ session: initialSession, fullName }: SessionViewProps) {
+export function SessionView({ session: initialSession, fullName, username, projectId }: SessionViewProps) {
   const { theme } = useTheme()
   const [isLive, setIsLive] = useState(initialSession.is_live)
   const [session, setSession] = useState(initialSession)
@@ -63,6 +67,10 @@ export function SessionView({ session: initialSession, fullName }: SessionViewPr
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
+        <Link href={`/${username}/${projectId}`} className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6">
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to project
+        </Link>
         {isLive && (
           <Badge variant="secondary" className="bg-background ring-1 ring-green-500/50 py-2">
             <Circle className="h-4 w-4 rounded-full scale-75 text-green-500/50 ring-4 ring-green-500/30 mr-2 fill-green-500/90" />
