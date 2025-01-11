@@ -14,6 +14,7 @@ interface LiveSessionPageProps {
 }
 
 export default async function LiveSessionPage({ params }: LiveSessionPageProps) {
+  const { username, projectId, sessionId } = await params
   const supabase = await createClient()
   const {
     data: { user },
@@ -21,10 +22,8 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    redirect("/signin")
+    redirect(`/${username}/${projectId}/session/${sessionId}`)
   }
-
-  const { username, projectId, sessionId } = await params
 
   // Set session as live
   const { error: liveError } = await supabase
