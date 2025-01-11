@@ -66,7 +66,9 @@ export function SessionCard({ session, username, projectId, featured = false, cu
     <>
       <div className={cn("border-t-2 border-dotted pt-6 pb-4 lg:pr-8 grid grid-cols-1 lg:grid-cols-3 gap-4")}>
         <div className="lg:col-span-2">
-          <div className={cn("font-medium", featured ? "text-2xl" : "text-lg")}>{session.title}</div>
+          <Link href={sessionUrl}>
+            <div className={cn("font-medium", featured ? "text-2xl" : "text-lg")}>{session.title}</div>
+          </Link>
           <div className="text-xs font-mono flex items-center space-x-2 pb-2">
             <span>{new Date(session.created_at).toLocaleDateString()}</span>
             <span>·</span>
@@ -74,9 +76,12 @@ export function SessionCard({ session, username, projectId, featured = false, cu
               {session.commit_shas.length} commit{session.commit_shas.length > 1 ? "s" : ""}
             </span>
           </div>
-          <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground line-clamp-2 mb-4">
+          <div className="prose dark:prose-invert max-w-none text-sm text-muted-foreground line-clamp-2">
             <ReactMarkdown>{previewContent}</ReactMarkdown>
           </div>
+          <Link href={sessionUrl} className="italic text-xs text-blue-500 hover:underline">
+            View more...
+          </Link>
         </div>
         <div className="flex justify-end pb-1 gap-2">
           <Button onClick={copyToClipboard} variant="outline" size="sm" className="gap-2">

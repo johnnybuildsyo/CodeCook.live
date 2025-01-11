@@ -30,7 +30,7 @@ export function ProjectCard({ project, username, sessionCount = 0 }: ProjectCard
           </div>
         )}
         <CardHeader>
-          <CardTitle className="group-hover:text-primary transition-colors">{project.display_name}</CardTitle>
+          <CardTitle className="group-hover:text-primary transition-colors text-2xl font-extrabold">{project.display_name}</CardTitle>
           <CardDescription>{project.description}</CardDescription>
         </CardHeader>
         <CardContent>
