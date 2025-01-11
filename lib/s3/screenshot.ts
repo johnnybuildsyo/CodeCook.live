@@ -1,65 +1,59 @@
-import puppeteer from "puppeteer"
-import { uploadToS3 } from "./utils"
+import chromium from "@sparticuz/chromium"
+import puppeteer from "puppeteer-core"
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
 
 interface GenerateScreenshotParams {
   url: string
   key: string
 }
 
-/**
- * Generates a screenshot of a poll and uploads it to S3.
- * @param {GenerateScreenshotParams} params - The parameters for screenshot generation.
- * @returns {Promise<string>} The URL of the uploaded screenshot.
- */
-export async function generateAndUploadScreenshot({ url, key }: GenerateScreenshotParams): Promise<string> {
-  console.log("Starting screenshot generation:", { url, key })
-
+export async function generateAndUploadScreenshot({ url, key }: GenerateScreenshotParams) {
   try {
-    const timeout = 10000
+    // Launch browser
     const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--no-first-run", "--no-zygote", "--single-process"],
-      timeout,
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     })
 
+    // Create a new page
     const page = await browser.newPage()
-    await page.setViewport({
-      width: 1280,
-      height: 720,
-      deviceScaleFactor: 1,
-    })
+    
+    // Set viewport
+    await page.setViewport({ width: 1280, height: 720 })
 
-    console.log("Navigating to URL: " + url)
-    await page.goto(url, {
-      waitUntil: "networkidle0",
-      timeout,
-    })
-    console.log("Page loaded")
+    // Navigate to URL
+    await page.goto(url, { waitUntil: "networkidle0", timeout: 30000 })
 
-    await page.waitForSelector("body", { timeout })
+    // Take screenshot
+    const screenshot = await page.screenshot({ type: "png" })
 
-    const screenshot = await page.screenshot({
-      type: "png",
-    })
+    // Close browser
     await browser.close()
 
-    console.log(`Uploading ${key} to S3: ${process.env.S3_BUCKET_NAME}`)
-    const imageUrl = await uploadToS3({
-      bucketName: process.env.S3_BUCKET_NAME!,
-      key,
-      body: screenshot as Buffer,
-      contentType: "image/png",
+    // Upload to S3
+    const s3Client = new S3Client({
+      region: process.env.AWS_REGION!,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      },
     })
 
-    console.log("Upload successful:", imageUrl)
-    return imageUrl
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET_NAME!,
+        Key: key,
+        Body: screenshot,
+        ContentType: "image/png",
+      })
+    )
+
+    // Return the URL
+    return `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`
   } catch (error) {
-    console.error("Screenshot generation failed:", {
-      url,
-      key,
-      error: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    })
-    throw new Error(`Failed to generate screenshot: ${error instanceof Error ? error.message : "Unknown error"}`)
+    console.error("Screenshot generation failed:", error)
+    throw error
   }
 }
