@@ -15,51 +15,35 @@ export async function generateAndUploadScreenshot({ url, key }: GenerateScreensh
   console.log("Starting screenshot generation:", { url, key })
 
   try {
-    const isLocalhost = process.env.NODE_ENV === "development"
+    const timeout = 10000
     const browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--no-first-run", "--no-zygote", "--single-process"],
-      timeout: 10000,
+      timeout,
     })
-    console.log("Browser launched")
 
     const page = await browser.newPage()
-    console.log("New page created")
-
-    const timeout = 10000
-
     await page.setViewport({
       width: 1200,
       height: 630,
       deviceScaleFactor: 1,
     })
-    console.log("Viewport set")
 
-    console.log("Navigating to URL:", url)
+    console.log("Navigating to URL: " + url)
     await page.goto(url, {
       waitUntil: "networkidle0",
       timeout,
     })
     console.log("Page loaded")
 
-    console.log("Waiting for main element")
-    await page.waitForSelector("main", { timeout: isLocalhost ? 10000 : 5000 })
-    console.log("Main element found")
+    await page.waitForSelector("body", { timeout })
 
     const screenshot = await page.screenshot({
       type: "png",
     })
-    console.log("Screenshot taken, size:", screenshot.length, "bytes")
-
     await browser.close()
-    console.log("Browser closed")
 
-    console.log("Uploading to S3:", {
-      bucket: process.env.S3_BUCKET_NAME,
-      key,
-      contentType: "image/png",
-    })
-
+    console.log(`Uploading ${key} to S3: ${process.env.S3_BUCKET_NAME}`)
     const imageUrl = await uploadToS3({
       bucketName: process.env.S3_BUCKET_NAME!,
       key,
