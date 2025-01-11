@@ -87,7 +87,7 @@ export function ProjectImportContainer({ username, className, existingProjects, 
     }
   }
 
-  if (isLoading) return <LoadingAnimation className="w-full text-center pt-24">Loading repositories</LoadingAnimation>
+  if (isLoading) return <LoadingAnimation className="w-full text-center py-16">Loading repositories</LoadingAnimation>
   if (error.includes("access token")) {
     return <GitHubAuthGate>Connect your GitHub account to import your repositories</GitHubAuthGate>
   }
