@@ -10,8 +10,6 @@ import { createClient } from "@/lib/supabase/client"
 import { useState } from "react"
 import { X, ChevronsRight, Share2 } from "lucide-react"
 import { LoadingAnimation } from "../ui/loading-animation"
-import { BlueskyButton } from "./editor/bluesky-button"
-import { BlueskyShareDialog } from "./editor/bluesky-share-dialog"
 import { ShareDialog } from "./editor/share-dialog"
 import { CopyLink } from "./editor/copy-link"
 import {
@@ -38,7 +36,6 @@ interface SessionCardProps {
 
 export function SessionCard({ session, username, projectId, featured = false, currentUser }: SessionCardProps) {
   const [isArchiving, setIsArchiving] = useState(false)
-  const [blueskyDialogOpen, setBlueskyDialogOpen] = useState(false)
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const sessionUrl = `/${username}/${projectId}/session/${session.id}`
   const startSessionUrl = `${sessionUrl}/live`
@@ -91,7 +88,6 @@ export function SessionCard({ session, username, projectId, featured = false, cu
             <Share2 className="h-3 w-3" />
             Share
           </Button>
-          {isAuthor && <BlueskyButton postUri={session.bluesky_post_uri} onPublish={() => setBlueskyDialogOpen(true)} />}
           {isAuthor && (
             <>
               <Button className="bg-blue-500 text-white hover:bg-blue-600" asChild size="sm">
@@ -125,8 +121,15 @@ export function SessionCard({ session, username, projectId, featured = false, cu
           )}
         </div>
       </div>
-      <BlueskyShareDialog open={blueskyDialogOpen} onOpenChange={setBlueskyDialogOpen} title={session.title} blocks={session.blocks} projectFullName={`${username}/${projectId}`} />
-      <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} title={session.title} blocks={session.blocks} sessionUrl={sessionUrl} />
+      <ShareDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        title={session.title}
+        blocks={session.blocks}
+        sessionUrl={sessionUrl}
+        postUri={session.bluesky_post_uri || undefined}
+        projectFullName={`${username}/${projectId}`}
+      />
     </>
   )
 }
