@@ -39,15 +39,17 @@ export function ShareDialog({ open, onOpenChange, title, blocks, sessionUrl, pos
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <p className="text-sm text-muted-foreground">You can also share your session to other publishing platforms by copying the content in different formats:</p>
+              <h3 className="font-bold -mb-2">Republish Content</h3>
+              <p className="text-sm text-muted-foreground">Share your session to other publishing platforms by copying the content in different formats:</p>
               <div className="flex gap-2">
                 <CopyRichText htmlContent={generateSessionHTML(title, blocks, fullUrl)} disabled={!title.trim()} />
                 <CopyMarkdown title={title} blocks={blocks} sessionUrl={fullUrl} disabled={!title.trim()} />
               </div>
             </div>
             <div className="flex flex-col gap-2 pt-2">
-              <p className="text-sm text-muted-foreground">Or you can share as a post thread:</p>
-              <div className="flex gap-4">
+              <h3 className="font-bold -mb-2">Share as Post Thread</h3>
+              <p className="text-sm text-muted-foreground">Share your session to 𝕏, Bluesky or Threads as a post thread:</p>
+              <div className="flex gap-2">
                 <BlueskyButton postUri={postUri} onPublish={() => setBlueskyDialogOpen(true)} />
                 <Button size="sm" variant="outline">
                   <Waypoints className="h-4 w-4" />

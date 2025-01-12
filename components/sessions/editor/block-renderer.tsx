@@ -81,7 +81,7 @@ export function BlockRenderer({
                   ? "Wrap up with the key benefits and where are we going next?"
                   : "Let's get into it. What are we cooking up? How are we doing it?"
             }
-            rows={block.role === "implementation" ? 4 : 3}
+            rows={6}
           />
           <div className="flex gap-2">
             <ImageUpload onUpload={(file) => onUploadImage(file, block.id)} />
