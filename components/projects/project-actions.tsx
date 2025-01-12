@@ -52,23 +52,25 @@ export function ProjectActions({ username, projectId, fullName, totalCommits, ha
   return (
     <>
       {!showCommits && (
-        <div className="mt-12 max-w-3xl mx-auto">
-          <h2 className="text-xl font-bold mb-4 text-center">Cook Up a New Coding Session</h2>
-          <div className="grid grid-cols-2 gap-6 p-6">
-            <Card className="p-8 flex flex-col items-center justify-center gap-8">
-              <p className="text-center text-balance text-muted-foreground">We’ll start you off with a clean slate and listen for new commits</p>
-              <Button className="text-base py-3 w-64 h-auto" onClick={handleStartFromScratch} disabled={isCreating}>
-                <Zap className="h-4 w-4 mr-2" />
-                {isCreating ? "Creating..." : "Start from Scratch"}
-              </Button>
-            </Card>
-            <Card className="p-8 flex flex-col items-center justify-center gap-8">
-              <p className="text-center text-balance text-muted-foreground">Import commits you’ve already cooked up and start from there</p>
-              <Button className="text-base py-3 w-64 h-auto" onClick={handleStartFromCommit}>
-                <Rocket className="h-4 w-4 mr-2" />
-                {showCommits ? "Loading Commits..." : "Start from a Commit"}
-              </Button>
-            </Card>
+        <div className="pt-6 border-t-2 border-dotted">
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-xl font-bold text-center">Start New Coding Session</h2>
+            <div className="grid grid-cols-2 gap-8 pt-4">
+              <Card className="p-8 flex flex-col items-center justify-center gap-4">
+                <p className="text-center text-balance text-muted-foreground -mt-2">We’ll start you off with a clean slate and listen for new commits</p>
+                <Button className="text-base py-2.5 w-64 h-auto" onClick={handleStartFromScratch} disabled={isCreating}>
+                  <Zap className="h-4 w-4 mr-2" />
+                  {isCreating ? "Creating..." : "Start from Scratch"}
+                </Button>
+              </Card>
+              <Card className="p-8 flex flex-col items-center justify-center gap-4">
+                <p className="text-center text-balance text-muted-foreground -mt-2">Import commits you’ve already cooked up and start from there</p>
+                <Button className="text-base py-2.5 w-64 h-auto" onClick={handleStartFromCommit}>
+                  <Rocket className="h-4 w-4 mr-2" />
+                  {showCommits ? "Loading Commits..." : "Start from a Commit"}
+                </Button>
+              </Card>
+            </div>
           </div>
         </div>
       )}

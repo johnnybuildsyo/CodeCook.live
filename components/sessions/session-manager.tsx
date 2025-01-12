@@ -22,7 +22,7 @@ import { useDialogManager } from "@/hooks/use-dialog-manager"
 import { useBlockManager } from "@/hooks/use-block-manager"
 import { useFileSelector } from "@/hooks/use-file-selector"
 import { Button } from "@/components/ui/button"
-import { Link } from "lucide-react"
+import { MegaphoneIcon } from "@heroicons/react/24/solid"
 import { cn } from "@/lib/utils"
 import { copyToClipboardWithFeedback, generateSessionHTML } from "@/lib/utils/markdown"
 import { ChatToggle } from "./chat/chat-toggle"
@@ -30,8 +30,8 @@ import { CommitSelectorDialog } from "./editor/commit-selector-dialog"
 import { useCommitPolling } from "../../hooks/use-commit-polling"
 import { useSessionHandlers } from "../../hooks/use-session-handlers"
 import { SessionContent } from "./editor/session-content"
-import { MegaphoneIcon } from "@heroicons/react/24/solid"
 import CopyRichText from "./editor/copy-rich-text"
+import { CopyLink } from "./editor/copy-link"
 
 interface SessionManagerProps {
   projectId: string
@@ -56,8 +56,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [view, setView] = useState<"edit" | "preview">("edit")
   const [initialBlocks] = useState(session?.blocks)
   const [commit, setCommit] = useState(initialCommit)
-  const [listenForCommits, setListenForCommits] = useState(!initialCommit.sha)
-  const [isCopied, setIsCopied] = useState(false)
+  const [listenForCommits, setListenForCommits] = useState(false)
   const [isAnnouncementCopied, setIsAnnouncementCopied] = useState(false)
   const [commitSelectorOpen, setCommitSelectorOpen] = useState(false)
 
@@ -110,14 +109,10 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   })
 
   // Use custom hook for session handlers
-  const { handleRemoveCommit, handleCopyShareLink, handleCommitSelect } = useSessionHandlers({
-    username,
-    projectSlug,
-    session,
+  const { handleRemoveCommit, handleCommitSelect } = useSessionHandlers({
     setCommit,
     setFiles,
     setListenForCommits,
-    setIsCopied,
     setCommitSelectorOpen,
   })
 
@@ -149,10 +144,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
           <div className="flex flex-col justify-start items-start w-[175px]">
             <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
           </div>
-          <Button size="sm" className="bg-blue-500/90 hover:bg-blue-500 text-white" onClick={handleCopyShareLink}>
-            <Link className={cn("h-4 w-4", isCopied && "mr-1")} />
-            {isCopied ? "Copied" : "Copy Link"}
-          </Button>
+          <CopyLink url={`/${username}/${projectSlug}/sessions/${session.id}`} className="border-blue-500/90 hover:border-blue-500 text-blue-500 hover:text-blue-600" />
           <Button
             size="sm"
             variant="outline"

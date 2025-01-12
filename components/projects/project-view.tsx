@@ -146,10 +146,10 @@ export function ProjectView({ project, stats, sessions, session, username, proje
               <p className="text-muted-foreground">{project.description}</p>
             </div>
           </div>
+          {isOwner && <ProjectActions username={username} projectId={projectId} fullName={project.full_name} totalCommits={stats?.commits || 0} hasGitHubToken={!!session?.provider_token} />}
           <div className="md:col-span-3 mt-8 border-b-2 border-dotted">
             <SessionList sessions={sessions?.map((t) => ({ ...t, blocks: t.blocks as unknown as Block[] })) || []} username={username} projectId={projectId} currentUser={session?.user} />
           </div>
-          {isOwner && <ProjectActions username={username} projectId={projectId} fullName={project.full_name} totalCommits={stats?.commits || 0} hasGitHubToken={!!session?.provider_token} />}
         </div>
       </main>
     </div>

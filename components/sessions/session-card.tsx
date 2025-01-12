@@ -8,12 +8,12 @@ import { Block, Session } from "@/lib/types/session"
 import { BoltIcon } from "@heroicons/react/24/solid"
 import { createClient } from "@/lib/supabase/client"
 import { useState } from "react"
-import { X, Copy, Check, ChevronsRight } from "lucide-react"
+import { X, ChevronsRight, Share2 } from "lucide-react"
 import { LoadingAnimation } from "../ui/loading-animation"
 import { BlueskyButton } from "./editor/bluesky-button"
 import { BlueskyShareDialog } from "./editor/bluesky-share-dialog"
-import { copyToClipboardWithFeedback, generateSessionHTML } from "@/lib/utils/markdown"
-import CopyRichText from "./editor/copy-rich-text"
+import { ShareDialog } from "./editor/share-dialog"
+import { CopyLink } from "./editor/copy-link"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,8 +38,8 @@ interface SessionCardProps {
 
 export function SessionCard({ session, username, projectId, featured = false, currentUser }: SessionCardProps) {
   const [isArchiving, setIsArchiving] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [blueskyDialogOpen, setBlueskyDialogOpen] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const sessionUrl = `/${username}/${projectId}/session/${session.id}`
   const startSessionUrl = `${sessionUrl}/live`
   const introSection = session.blocks.find((section: Block) => section.type === "markdown" && section.role === "intro")
@@ -54,11 +54,6 @@ export function SessionCard({ session, username, projectId, featured = false, cu
     setIsArchiving(false)
   }
 
-  const copyToClipboard = async () => {
-    const fullUrl = `${window.location.origin}${sessionUrl}`
-    await copyToClipboardWithFeedback(fullUrl, setCopied)
-  }
-
   if (session.is_archived === true) {
     return null
   }
@@ -70,7 +65,13 @@ export function SessionCard({ session, username, projectId, featured = false, cu
           <Link href={sessionUrl}>
             <div className={cn("font-medium", featured ? "text-2xl" : "text-lg", isAuthor && "line-clamp-1 w-[450px]")}>{session.title}</div>
           </Link>
-          <div className="text-xs font-mono flex items-center space-x-2 pb-2">
+          <div className="text-xs font-mono flex items-center space-x-2 pt-1 pb-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href={sessionUrl} className="inline-flex items-center py-1 mr-2 h-auto">
+                <ChevronsRight className="h-3 w-3 opacity-70" />
+                View Session
+              </Link>
+            </Button>
             <span>{new Date(session.created_at).toLocaleDateString()}</span>
             <span>·</span>
             <span>
@@ -85,24 +86,18 @@ export function SessionCard({ session, username, projectId, featured = false, cu
           </Link>
         </div>
         <div className="flex justify-end pb-1 gap-2">
-          <Button onClick={copyToClipboard} variant="outline" size="sm" className="bg-blue-500 text-white hover:bg-blue-600 gap-2">
-            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-            {copied ? "Copied!" : "Copy Link"}
+          <CopyLink url={sessionUrl} variant="outline2" />
+          <Button onClick={() => setShareDialogOpen(true)} variant="outline2" size="sm" className="gap-2">
+            <Share2 className="h-3 w-3" />
+            Share
           </Button>
-          <CopyRichText htmlContent={generateSessionHTML(session.title, session.blocks, `${window.location.origin}${sessionUrl}`)} disabled={!session.title.trim()} />
           {isAuthor && <BlueskyButton postUri={session.bluesky_post_uri} onPublish={() => setBlueskyDialogOpen(true)} />}
-          <Button asChild variant="outline" size="sm">
-            <Link href={sessionUrl} className="inline-flex items-center">
-              <ChevronsRight className="h-3 w-3 opacity-70" />
-              View Session
-            </Link>
-          </Button>
           {isAuthor && (
             <>
               <Button className="bg-blue-500 text-white hover:bg-blue-600" asChild size="sm">
                 <Link href={startSessionUrl}>
                   <BoltIcon className="h-3 w-3" />
-                  Renew Session
+                  Go Live
                 </Link>
               </Button>
               {isArchiving ? (
@@ -131,6 +126,7 @@ export function SessionCard({ session, username, projectId, featured = false, cu
         </div>
       </div>
       <BlueskyShareDialog open={blueskyDialogOpen} onOpenChange={setBlueskyDialogOpen} title={session.title} blocks={session.blocks} projectFullName={`${username}/${projectId}`} />
+      <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} title={session.title} blocks={session.blocks} sessionUrl={sessionUrl} />
     </>
   )
 }

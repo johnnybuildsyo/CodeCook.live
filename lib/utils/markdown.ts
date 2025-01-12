@@ -11,6 +11,8 @@ export function generateSessionMarkdown(title: string, blocks: Block[], sessionU
       markdownContent += "```diff\n"
       markdownContent += block.content
       markdownContent += "\n```\n\n"
+    } else if (block.type === "commit-links") {
+      markdownContent += `- ${block.content}\n`
     }
   })
 
