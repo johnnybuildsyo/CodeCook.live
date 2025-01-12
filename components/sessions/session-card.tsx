@@ -85,7 +85,7 @@ export function SessionCard({ session, username, projectId, featured = false, cu
           </Link>
         </div>
         <div className="flex justify-end pb-1 gap-2">
-          <Button onClick={copyToClipboard} variant="outline" size="sm" className="gap-2">
+          <Button onClick={copyToClipboard} variant="outline" size="sm" className="bg-blue-500 text-white hover:bg-blue-600 gap-2">
             {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             {copied ? "Copied!" : "Copy Link"}
           </Button>

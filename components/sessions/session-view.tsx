@@ -3,7 +3,7 @@
 import type { Session } from "@/lib/types/session"
 import { useTheme } from "next-themes"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
+import { CornerUpLeft } from "lucide-react"
 import { SessionContent } from "./session-content"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
@@ -67,9 +67,9 @@ export function SessionView({ session: initialSession, fullName, username, proje
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <Link href={`/${username}/${projectId}`} className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back to project
+        <Link href={`/${username}/${projectId}`} className="group inline-flex items-center space-x-2 font-mono text-xs border px-2 py-1 rounded-md hover:bg-foreground/5 transition-colors">
+          <CornerUpLeft className="h-3 w-3" />
+          <p className="font-medium">Back to project</p>
         </Link>
         {isLive && (
           <Badge variant="secondary" className="bg-background ring-1 ring-green-500/50 py-2">

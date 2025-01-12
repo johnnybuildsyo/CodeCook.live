@@ -36,8 +36,12 @@ export function ProjectView({ project, stats, sessions, session, username, proje
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-8 max-w-6xl">
+        <Link href={`/${username}`} className="group inline-flex items-center space-x-2 font-mono text-xs border px-2 py-1 rounded-md hover:bg-foreground/5 transition-colors">
+          <CornerUpLeft className="h-3 w-3" />
+          <p className="font-medium">{project.profiles.name} Projects</p>
+        </Link>
         <div className="mb-6 relative">
-          <div className="flex flex-col lg:flex-row items-start gap-4 lg:gap-8">
+          <div className="flex flex-col lg:flex-row items-start gap-4 lg:gap-8 py-8">
             {project.screenshot_url && (
               <div className="relative w-full max-w-[480px] lg:w-1/2 aspect-video overflow-hidden rounded-lg border border-foreground/10">
                 <Image src={convertImageUrl(project.screenshot_url || "")} alt={project.display_name} fill={true} className="object-cover w-full h-full transition-transform group-hover:scale-105" />
@@ -62,10 +66,6 @@ export function ProjectView({ project, stats, sessions, session, username, proje
                 </Button>
               )}
               <div className="flex items-center space-x-4 mb-6">
-                <Link href={`/${username}`} className="group inline-flex items-center space-x-2 font-mono text-xs border px-2 py-1 rounded-md hover:bg-foreground/5 transition-colors">
-                  <CornerUpLeft className="h-3 w-3" />
-                  <p className="font-medium">{project.profiles.name} Projects</p>
-                </Link>
                 <Link
                   href={`https://github.com/${project.full_name}`}
                   target="_blank"

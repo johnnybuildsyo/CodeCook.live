@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { BookCopyIcon } from "lucide-react"
+import { CopySlash } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface CopyRichTextProps {
@@ -38,7 +38,7 @@ const CopyRichText: React.FC<CopyRichTextProps> = ({ htmlContent, disabled }) =>
         className={cn("border text-blue-500 hover:bg-blue-500/90 hover:text-white", disabled && "opacity-50 cursor-not-allowed")}
         onClick={copyToClipboard}
       >
-        <BookCopyIcon className={cn("h-4 w-4", isCopied && "mr-3")} />
+        <CopySlash className={cn("h-4 w-4", isCopied && "mr-3")} />
         {isCopied ? "Copied Text" : "Copy Rich Text"}
       </Button>
       <div
