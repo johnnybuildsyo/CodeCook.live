@@ -7,6 +7,7 @@ import { CopyLink } from "./copy-link"
 import { CopyMarkdown } from "./copy-markdown"
 import { BlueskyButton } from "./bluesky-button"
 import { BlueskyShareDialog } from "./bluesky-share-dialog"
+import { ThreadShareDialog } from "./thread-share-dialog"
 import { useState } from "react"
 import { Waypoints } from "lucide-react"
 
@@ -22,6 +23,7 @@ interface ShareDialogProps {
 
 export function ShareDialog({ open, onOpenChange, title, blocks, sessionUrl, postUri, projectFullName }: ShareDialogProps) {
   const [blueskyDialogOpen, setBlueskyDialogOpen] = useState(false)
+  const [threadDialogOpen, setThreadDialogOpen] = useState(false)
   const fullUrl = `${window.location.origin}${sessionUrl}`
 
   return (
@@ -51,7 +53,7 @@ export function ShareDialog({ open, onOpenChange, title, blocks, sessionUrl, pos
               <p className="text-sm text-muted-foreground">Share your session to 𝕏, Bluesky or Threads as a post thread:</p>
               <div className="flex gap-2">
                 <BlueskyButton postUri={postUri} onPublish={() => setBlueskyDialogOpen(true)} />
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => setThreadDialogOpen(true)}>
                   <Waypoints className="h-4 w-4" />
                   Share as Post Thread
                 </Button>
@@ -61,6 +63,7 @@ export function ShareDialog({ open, onOpenChange, title, blocks, sessionUrl, pos
         </DialogContent>
       </Dialog>
       <BlueskyShareDialog open={blueskyDialogOpen} onOpenChange={setBlueskyDialogOpen} title={title} blocks={blocks} projectFullName={projectFullName} />
+      <ThreadShareDialog open={threadDialogOpen} onOpenChange={setThreadDialogOpen} title={title} blocks={blocks} projectFullName={projectFullName} />
     </>
   )
 }
