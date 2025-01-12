@@ -83,7 +83,7 @@ export function SessionCard({ session, username, projectId, featured = false, cu
           </Link>
         </div>
         <div className="flex justify-end pb-1 gap-2">
-          <CopyLink url={sessionUrl} variant="outline2" />
+          <CopyLink url={sessionUrl} />
           <Button onClick={() => setShareDialogOpen(true)} variant="outline2" size="sm" className="gap-2">
             <Share2 className="h-3 w-3" />
             Share

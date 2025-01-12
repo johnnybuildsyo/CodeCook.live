@@ -7,26 +7,26 @@ import { cn } from "@/lib/utils"
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<"textarea">>(({ className, value, ...props }, ref) => {
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null)
 
-  const adjustHeight = React.useCallback(() => {
-    const textarea = textareaRef.current
-    if (!textarea) return
-    textarea.style.height = "auto"
-    textarea.style.height = `${textarea.scrollHeight}px`
-  }, [])
+  // const adjustHeight = React.useCallback(() => {
+  //   const textarea = textareaRef.current
+  //   if (!textarea) return
+  //   textarea.style.height = "auto"
+  //   textarea.style.height = `${textarea.scrollHeight}px`
+  // }, [])
 
-  React.useEffect(() => {
-    const textarea = textareaRef.current
-    if (!textarea) return
+  // React.useEffect(() => {
+  //   const textarea = textareaRef.current
+  //   if (!textarea) return
 
-    textarea.addEventListener("input", adjustHeight)
-    adjustHeight() // Initial adjustment
+  //   textarea.addEventListener("input", adjustHeight)
+  //   adjustHeight() // Initial adjustment
 
-    return () => textarea.removeEventListener("input", adjustHeight)
-  }, [adjustHeight])
+  //   return () => textarea.removeEventListener("input", adjustHeight)
+  // }, [adjustHeight])
 
-  React.useEffect(() => {
-    adjustHeight()
-  }, [value, adjustHeight]) // Adjust height whenever `value` changes externally
+  // React.useEffect(() => {
+  //   adjustHeight()
+  // }, [value, adjustHeight]) // Adjust height whenever `value` changes externally
 
   return (
     <textarea

@@ -9,10 +9,8 @@ import { DiffSelector } from "./editor/diff-selector"
 import { FileChange } from "@/lib/types/session"
 import type { Session } from "@/lib/types/session"
 import { CommitLinkSelector } from "./editor/commit-link-selector"
-import { BlueskyShareDialog } from "./editor/bluesky-share-dialog"
 import { useParams } from "next/navigation"
 import { SaveStatus } from "./editor/save-status"
-import { BlueskyButton } from "./editor/bluesky-button"
 import { EndSessionButton } from "./editor/end-session-button"
 import { useSessionAutosave } from "@/hooks/use-session-autosave"
 import { useFileReferences } from "@/hooks/use-file-references"
@@ -22,16 +20,16 @@ import { useDialogManager } from "@/hooks/use-dialog-manager"
 import { useBlockManager } from "@/hooks/use-block-manager"
 import { useFileSelector } from "@/hooks/use-file-selector"
 import { Button } from "@/components/ui/button"
-import { MegaphoneIcon } from "@heroicons/react/24/solid"
+import { MegaphoneIcon, Share2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { copyToClipboardWithFeedback, generateSessionHTML } from "@/lib/utils/markdown"
+import { copyToClipboardWithFeedback } from "@/lib/utils/markdown"
 import { ChatToggle } from "./chat/chat-toggle"
 import { CommitSelectorDialog } from "./editor/commit-selector-dialog"
 import { useCommitPolling } from "../../hooks/use-commit-polling"
 import { useSessionHandlers } from "../../hooks/use-session-handlers"
 import { SessionContent } from "./editor/session-content"
-import CopyRichText from "./editor/copy-rich-text"
 import { CopyLink } from "./editor/copy-link"
+import { ShareDialog } from "./editor/share-dialog"
 
 interface SessionManagerProps {
   projectId: string
@@ -59,8 +57,9 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
   const [listenForCommits, setListenForCommits] = useState(false)
   const [isAnnouncementCopied, setIsAnnouncementCopied] = useState(false)
   const [commitSelectorOpen, setCommitSelectorOpen] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
 
-  const sessionUrl = `${window.location.origin}/${username}/${projectSlug}/sessions/${session.id}`
+  const sessionUrl = `/${username}/${projectSlug}/sessions/${session.id}`
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -84,8 +83,7 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
     }
   }, [codeChanges, setBlocks])
 
-  const { activeBlockId, diffDialogOpen, linkSelectorOpen, blueskyDialogOpen, openDiffDialog, closeDiffDialog, openLinkSelector, closeLinkSelector, openBlueskyDialog, closeBlueskyDialog } =
-    useDialogManager()
+  const { activeBlockId, diffDialogOpen, linkSelectorOpen, openDiffDialog, closeDiffDialog, openLinkSelector, closeLinkSelector } = useDialogManager()
 
   const { status: saveStatus, lastSavedAt } = useSessionAutosave({
     projectId,
@@ -144,7 +142,11 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
           <div className="flex flex-col justify-start items-start w-[175px]">
             <SaveStatus saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
           </div>
-          <CopyLink url={`/${username}/${projectSlug}/sessions/${session.id}`} className="border-blue-500/90 hover:border-blue-500 text-blue-500 hover:text-blue-600" />
+          <CopyLink url={sessionUrl} />
+          <Button onClick={() => setShareDialogOpen(true)} variant="outline2" size="sm" className="gap-2">
+            <Share2 className="h-4 w-4" />
+            Share
+          </Button>
           <Button
             size="sm"
             variant="outline"
@@ -155,8 +157,6 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
             <MegaphoneIcon className={cn("h-4 w-4 -rotate-12 scale-110", isAnnouncementCopied && "mr-1")} />
             {isAnnouncementCopied ? "Copied" : "Announce"}
           </Button>
-          <CopyRichText htmlContent={generateSessionHTML(title, blocks, sessionUrl)} disabled={!title.trim()} />
-          <BlueskyButton postUri={session?.bluesky_post_uri} onPublish={openBlueskyDialog} />
           <div className="pl-2">
             <ChatToggle sessionId={session.id} initialEnabled={session.chat_enabled ?? false} />
           </div>
@@ -220,7 +220,15 @@ export function SessionManager({ projectId, commit: initialCommit, fullName, ses
         }}
       />
 
-      <BlueskyShareDialog open={blueskyDialogOpen} onOpenChange={closeBlueskyDialog} title={title} blocks={blocks} projectFullName={fullName} />
+      <ShareDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        title={title}
+        blocks={blocks}
+        sessionUrl={sessionUrl}
+        postUri={session?.bluesky_post_uri || undefined}
+        projectFullName={fullName}
+      />
     </SessionProvider>
   )
 }

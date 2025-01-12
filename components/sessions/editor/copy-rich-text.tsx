@@ -33,9 +33,8 @@ const CopyRichText: React.FC<CopyRichTextProps> = ({ htmlContent, disabled }) =>
     <div>
       <Button
         size="sm"
-        variant="outline"
         disabled={disabled}
-        className={cn("border text-blue-500 hover:bg-blue-500/90 hover:text-white", disabled && "opacity-50 cursor-not-allowed")}
+        className={cn("border bg-blue-500 hover:bg-blue-500/90 text-white hover:text-white", disabled && "opacity-50 cursor-not-allowed")}
         onClick={copyToClipboard}
       >
         <CopySlash className={cn("h-4 w-4", isCopied && "mr-3")} />

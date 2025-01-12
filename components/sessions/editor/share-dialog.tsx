@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Block } from "@/lib/types/session"
 import { generateSessionHTML } from "@/lib/utils/markdown"
-import { Twitter } from "lucide-react"
 import CopyRichText from "./copy-rich-text"
 import { CopyLink } from "./copy-link"
+import { CopyMarkdown } from "./copy-markdown"
 import { BlueskyButton } from "./bluesky-button"
 import { BlueskyShareDialog } from "./bluesky-share-dialog"
 import { useState } from "react"
+import { Waypoints } from "lucide-react"
 
 interface ShareDialogProps {
   open: boolean
@@ -23,30 +24,36 @@ export function ShareDialog({ open, onOpenChange, title, blocks, sessionUrl, pos
   const [blueskyDialogOpen, setBlueskyDialogOpen] = useState(false)
   const fullUrl = `${window.location.origin}${sessionUrl}`
 
-  const handleTweetShare = () => {
-    const tweetText = encodeURIComponent(`Check out my CodeCook session: "${title}" ${fullUrl}`)
-    window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, "_blank")
-  }
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Share Session</DialogTitle>
-            <DialogDescription>Share your coding session across different platforms</DialogDescription>
+            <DialogTitle className="text-2xl font-bold">Share Session</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col gap-4 py-4">
-            <div className="flex items-center gap-2">
-              <CopyLink url={sessionUrl} className="flex-1" />
-              <CopyRichText htmlContent={generateSessionHTML(title, blocks, fullUrl)} disabled={!title.trim()} />
+          <div className="flex flex-col gap-4 pb-4">
+            <div className="flex items-center">
+              <p className="text-sm text-muted-foreground">The easiest way to share, copy a link to your session:</p>
+              <div className="scale-75">
+                <CopyLink url={sessionUrl} />
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" className="flex-1" onClick={handleTweetShare}>
-                <Twitter className="h-4 w-4 mr-2" />
-                Share on Twitter
-              </Button>
-              <BlueskyButton postUri={postUri} onPublish={() => setBlueskyDialogOpen(true)} />
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-muted-foreground">You can also share your session to other publishing platforms by copying the content in different formats:</p>
+              <div className="flex gap-2">
+                <CopyRichText htmlContent={generateSessionHTML(title, blocks, fullUrl)} disabled={!title.trim()} />
+                <CopyMarkdown title={title} blocks={blocks} sessionUrl={fullUrl} disabled={!title.trim()} />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 pt-2">
+              <p className="text-sm text-muted-foreground">Or you can share as a post thread:</p>
+              <div className="flex gap-4">
+                <BlueskyButton postUri={postUri} onPublish={() => setBlueskyDialogOpen(true)} />
+                <Button size="sm" variant="outline">
+                  <Waypoints className="h-4 w-4" />
+                  Share as Post Thread
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
